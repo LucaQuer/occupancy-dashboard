@@ -195,6 +195,33 @@
       width: 100%;
       height: 100%;
       min-height: 320px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      padding: 6px 4px 2px;
+      flex-shrink: 0;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      opacity: 0.9;
     }
 
     .loading,
@@ -291,6 +318,10 @@
           </div>
           <div class="card-body">
             <div id="chart-milano" class="chart"></div>
+            <div class="legend">
+              <span class="legend-item"><span class="legend-dot" style="background:#33d17a"></span>Bassa &lt;35%</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#45d4ff"></span>Media 35–59%</span>
+            </div>
           </div>
         </section>
 
@@ -303,6 +334,10 @@
           </div>
           <div class="card-body">
             <div id="chart-roma" class="chart"></div>
+            <div class="legend">
+              <span class="legend-item"><span class="legend-dot" style="background:#f6c344"></span>Alta 60–74%</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#ff5f6d"></span>Critica ≥75%</span>
+            </div>
           </div>
         </section>
       </div>
@@ -382,6 +417,7 @@
 
     function computeMetrics(series) {
       const values = series
+        .filter(item => item.has_data === true && item.percentage !== null)
         .map(item => Number(item.percentage))
         .filter(value => Number.isFinite(value));
 
@@ -532,9 +568,11 @@
               }
             },
             splitLine: {
+              show: true,
               lineStyle: {
-                color: 'rgba(255,255,255,0.08)',
-                type: 'dashed'
+                color: 'rgba(255,255,255,0.13)',
+                type: 'dashed',
+                width: 1
               }
             },
             axisLine: { show: false }
@@ -582,7 +620,7 @@
                 fontSize: 12,
                 fontWeight: 700,
                 textShadowColor: 'rgba(0,0,0,1)',
-                textShadowBlur: 8,
+                textShadowBlur: 7,
                 textShadowOffsetX: 0,
                 textShadowOffsetY: 1,
                 formatter: function(params) {
@@ -615,12 +653,41 @@
                 fontSize: 12,
                 fontWeight: 700,
                 textShadowColor: 'rgba(0,0,0,1)',
-                textShadowBlur: 8,
+                textShadowBlur: 7,
                 textShadowOffsetX: 0,
                 textShadowOffsetY: 1,
                 formatter: function(params) {
                   return params.value == null ? '' : String(params.value);
                 }
+              }
+            },
+            {
+              name: 'Soglie',
+              type: 'line',
+              silent: true,
+              symbol: 'none',
+              data: [],
+              markLine: {
+                silent: true,
+                symbol: 'none',
+                animation: false,
+                data: [
+                  {
+                    yAxis: maxCapacity * 0.35,
+                    lineStyle: { color: '#33d17a', type: 'dashed', width: 1, opacity: 0.45 },
+                    label: { show: false }
+                  },
+                  {
+                    yAxis: maxCapacity * 0.60,
+                    lineStyle: { color: '#45d4ff', type: 'dashed', width: 1, opacity: 0.45 },
+                    label: { show: false }
+                  },
+                  {
+                    yAxis: maxCapacity * 0.75,
+                    lineStyle: { color: '#f6c344', type: 'dashed', width: 1, opacity: 0.45 },
+                    label: { show: false }
+                  }
+                ]
               }
             }
           ],
