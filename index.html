@@ -231,7 +231,7 @@
   </div>
 
   <script>
-    const dashboardData = {
+    const fallbackData = {
       updated_at: '2026-03-25 22:16',
       site_name: 'Sede Milano',
       month_label: 'Marzo 2026',
@@ -270,6 +270,8 @@
       ]
     };
 
+    const DATA_URL = './data_occupancy_mensile_wp.json';
+
     function formatTimestamp(value) {
       if (!value) return '--';
       const normalized = String(value).replace(' ', 'T');
@@ -292,13 +294,65 @@
     }
 
     function computeMetrics(series) {
-      const values = series.map(item => Number(item.value || 0));
+      const values = series.map(item => Number(item.value || 0)).filter(value => !Number.isNaN(value));
+      if (!values.length) {
+        return { avg: 0, peak: 0, min: 0 };
+      }
       const total = values.reduce((sum, current) => sum + current, 0);
       return {
         avg: Math.round(total / values.length),
         peak: Math.max(...values),
         min: Math.min(...values)
       };
+    }
+
+    function normalizeDashboardData(raw) {
+      const siteName = raw.site_name || raw.sede || raw.site || 'Sede';
+      const monthLabel = raw.month_label || raw.month || raw.mese || 'Mese corrente';
+      const updatedAt = raw.updated_at || raw.last_update || raw.ultimo_aggiornamento || null;
+
+      let occupancyDaily = [];
+
+      if (Array.isArray(raw.occupancy_daily)) {
+        occupancyDaily = raw.occupancy_daily;
+      } else if (Array.isArray(raw.data)) {
+        occupancyDaily = raw.data;
+      } else if (Array.isArray(raw.days)) {
+        occupancyDaily = raw.days;
+      }
+
+      occupancyDaily = occupancyDaily.map(function(item, index) {
+        const dayValue = item.day || item.giorno || item.date || item.data || String(index + 1).padStart(2, '0');
+        const percentageValue = Number(
+          item.value ?? item.occupancy ?? item.occupancy_percentage ?? item.percentuale ?? item.percentage ?? 0
+        );
+
+        return {
+          day: String(dayValue).slice(-2).padStart(2, '0'),
+          value: Math.max(0, Math.min(100, Number.isNaN(percentageValue) ? 0 : percentageValue))
+        };
+      });
+
+      return {
+        updated_at: updatedAt,
+        site_name: siteName,
+        month_label: monthLabel,
+        occupancy_daily: occupancyDaily
+      };
+    }
+
+    async function loadDashboardData() {
+      try {
+        const response = await fetch(DATA_URL, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status);
+        }
+        const json = await response.json();
+        return normalizeDashboardData(json);
+      } catch (error) {
+        console.warn('Errore caricamento JSON, uso fallback locale:', error);
+        return fallbackData;
+      }
     }
 
     function renderSummary(metrics) {
@@ -321,6 +375,11 @@
 
     function buildOccupancyChart(containerId, data) {
       const chart = echarts.init(document.getElementById(containerId));
+      updateOccupancyChart(chart, data);
+      return chart;
+    }
+
+    function updateOccupancyChart(chart, data) {
       const series = Array.isArray(data.occupancy_daily) ? data.occupancy_daily : [];
       const days = series.map(item => item.day);
       const values = series.map(item => Number(item.value || 0));
@@ -431,19 +490,22 @@
             }
           }
         ]
-      });
-
-      return chart;
+      }, true);
     }
 
-    document.getElementById('lastUpdate').textContent = 'Ultimo aggiornamento: ' + formatTimestamp(dashboardData.updated_at);
-    const occupancyChart = buildOccupancyChart('occupancyChart', dashboardData);
+    const occupancyChart = buildOccupancyChart('occupancyChart', fallbackData);
+
+    loadDashboardData().then(function(data) {
+      document.getElementById('lastUpdate').textContent = 'Ultimo aggiornamento: ' + formatTimestamp(data.updated_at);
+      updateOccupancyChart(occupancyChart, data);
+    }).catch(function() {
+      document.getElementById('lastUpdate').textContent = 'Ultimo aggiornamento: ' + formatTimestamp(fallbackData.updated_at);
+      updateOccupancyChart(occupancyChart, fallbackData);
+    });
+
     window.addEventListener('resize', function() {
       occupancyChart.resize();
     });
-
-    // Step successivo:
-    // sostituiamo dashboardData con una fetch verso un file JSON su GitHub Pages.
   </script>
 </body>
 </html>
