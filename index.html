@@ -131,56 +131,39 @@
     .card-header {
       position: relative;
       z-index: 1;
-      padding: 18px 22px 0;
+      padding: 14px 22px 10px;
+    }
+
+    .card-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
     }
 
     .eyebrow {
       display: inline-block;
-      margin-bottom: 10px;
-      padding: 6px 10px;
+      padding: 8px 18px;
       border-radius: 999px;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 800;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.10em;
       text-transform: uppercase;
       color: var(--cyan);
-      background: rgba(69,212,255,0.08);
-      border: 1px solid rgba(69,212,255,0.16);
-    }
-
-    .card-title {
-      margin: 0;
-      font-size: 24px;
-      font-weight: 800;
-    }
-
-    .card-subtitle {
-      margin: 8px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .card-body {
-      position: relative;
-      z-index: 1;
-      min-height: 0;
-      padding: 12px 16px 16px;
-      display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 10px;
+      background: rgba(69,212,255,0.10);
+      border: 1px solid rgba(69,212,255,0.25);
+      white-space: nowrap;
     }
 
     .chart-summary {
       display: flex;
-      justify-content: flex-end;
       gap: 10px;
       flex-wrap: wrap;
-      min-height: 58px;
     }
 
     .summary-pill {
-      min-width: 122px;
-      padding: 10px 12px;
+      min-width: 110px;
+      padding: 8px 14px;
       border-radius: 14px;
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.08);
@@ -192,16 +175,25 @@
     .summary-pill .label {
       display: block;
       color: var(--muted);
-      font-size: 12px;
-      margin-bottom: 6px;
+      font-size: 11px;
+      margin-bottom: 4px;
     }
 
     .summary-pill .value {
       display: block;
       color: var(--text);
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 800;
       line-height: 1;
+    }
+
+    .card-body {
+      position: relative;
+      z-index: 1;
+      min-height: 0;
+      padding: 4px 16px 14px;
+      display: flex;
+      flex-direction: column;
     }
 
     .chart {
@@ -277,8 +269,8 @@
   <div class="shell">
     <header class="header">
       <div class="title-block">
-        <h1>Occupancy Dashboard</h1>
-        <p>Ultimi 30 giorni · Workplace Milano e Roma</p>
+        <h1>Allianz Trade – Occupancy Dashboard</h1>
+        <p>Workplace Milano e Roma · Postazioni occupate e libere per giorno negli ultimi 30 giorni</p>
       </div>
       <div class="status">
         <div><strong id="lastUpdate">Ultimo aggiornamento: --</strong></div>
@@ -297,24 +289,24 @@
       <div id="dashboard" class="grid" style="display:none;">
         <section class="card">
           <div class="card-header">
-            <span class="eyebrow">Milano</span>
-            <h2 class="card-title">Occupancy Workplace</h2>
-            <p class="card-subtitle">Postazioni occupate e libere per giorno</p>
+            <div class="card-header-row">
+              <span class="eyebrow">Milano</span>
+              <div class="chart-summary" id="summary-milano"></div>
+            </div>
           </div>
           <div class="card-body">
-            <div class="chart-summary" id="summary-milano"></div>
             <div id="chart-milano" class="chart"></div>
           </div>
         </section>
 
         <section class="card">
           <div class="card-header">
-            <span class="eyebrow">Roma</span>
-            <h2 class="card-title">Occupancy Workplace</h2>
-            <p class="card-subtitle">Postazioni occupate e libere per giorno</p>
+            <div class="card-header-row">
+              <span class="eyebrow">Roma</span>
+              <div class="chart-summary" id="summary-roma"></div>
+            </div>
           </div>
           <div class="card-body">
-            <div class="chart-summary" id="summary-roma"></div>
             <div id="chart-roma" class="chart"></div>
           </div>
         </section>
@@ -476,7 +468,7 @@
           animationDuration: 700,
           animationEasing: 'cubicOut',
           grid: {
-            left: 54,
+            left: 68,
             right: 18,
             top: 24,
             bottom: 56,
@@ -534,7 +526,14 @@
             min: 0,
             max: Math.ceil(maxCapacity * 1.18),
             axisLabel: {
-              color: '#9fb2ce'
+              color: '#9fb2ce',
+              formatter: function(value) {
+                if (maxCapacity === 0) return value;
+                const pct = Math.round((value / maxCapacity) * 100);
+                return `${value}\n${pct}%`;
+              },
+              fontSize: 10,
+              lineHeight: 14
             },
             splitLine: {
               lineStyle: {
@@ -586,6 +585,10 @@
                 color: '#ffffff',
                 fontSize: 10,
                 fontWeight: 700,
+                textShadowColor: 'rgba(0,0,0,0.85)',
+                textShadowBlur: 4,
+                textShadowOffsetX: 0,
+                textShadowOffsetY: 1,
                 formatter: function(params) {
                   return params.value == null ? '' : String(params.value);
                 }
@@ -612,9 +615,13 @@
                 show: true,
                 position: 'top',
                 distance: 4,
-                color: '#b9c9e3',
+                color: '#e8f0ff',
                 fontSize: 10,
                 fontWeight: 700,
+                textShadowColor: 'rgba(0,0,0,0.95)',
+                textShadowBlur: 5,
+                textShadowOffsetX: 0,
+                textShadowOffsetY: 1,
                 formatter: function(params) {
                   return params.value == null ? '' : String(params.value);
                 }
