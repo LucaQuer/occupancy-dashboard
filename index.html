@@ -519,7 +519,7 @@
           yAxis: {
             type: 'value',
             min: 0,
-            max: maxCapacity,
+            max: Math.ceil(maxCapacity * 1.12),
             interval: maxCapacity / 4,
             axisLabel: {
               color: '#9fb2ce',
@@ -527,6 +527,7 @@
               formatter: function(value) {
                 if (maxCapacity === 0) return '0%';
                 const pct = Math.round((value / maxCapacity) * 100);
+                if (pct > 100) return '';
                 return `${pct}%`;
               }
             },
