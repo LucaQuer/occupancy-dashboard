@@ -1,1 +1,379 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Occupancy Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(11, 24, 43, 0.92);
+      --panel-border: rgba(141, 179, 255, 0.24);
+      --text: #f4f8ff;
+      --muted: #b2c3de;
+      --blue: #4c7dff;
+      --cyan: #45d4ff;
+      --green: #33d17a;
+      --yellow: #f6c344;
+      --red: #ff5f6d;
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(76,125,255,0.18), transparent 24%),
+        radial-gradient(circle at top right, rgba(69,212,255,0.12), transparent 22%),
+        radial-gradient(circle at bottom center, rgba(155,109,255,0.10), transparent 28%),
+        linear-gradient(180deg, #081120 0%, #07111f 100%);
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shell {
+      width: 100vw;
+      height: 100vh;
+      padding: 22px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 16px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      padding: 4px 2px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .title-block h1 {
+      margin: 0;
+      font-size: clamp(28px, 3vw, 42px);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+    }
+
+    .title-block p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .status {
+      text-align: right;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .status strong {
+      color: var(--text);
+      font-size: 18px;
+    }
+
+    .main {
+      display: grid;
+      place-items: center;
+      min-height: 0;
+    }
+
+    .card {
+      position: relative;
+      width: min(820px, 100%);
+      height: min(620px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent 20%),
+        radial-gradient(circle at top right, rgba(76,125,255,0.15), transparent 30%);
+      pointer-events: none;
+    }
+
+    .card-header {
+      position: relative;
+      z-index: 1;
+      padding: 18px 22px 0;
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .card-subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .card-body {
+      position: relative;
+      z-index: 1;
+      height: calc(100% - 90px);
+      padding: 8px 10px 10px;
+    }
+
+    #occupancyChart {
+      width: 100%;
+      height: 100%;
+    }
+
+    .legend-note {
+      position: absolute;
+      left: 24px;
+      bottom: 20px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+      z-index: 2;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @media (max-width: 900px) {
+      .shell {
+        padding: 14px;
+      }
+
+      .header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .card {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="header">
+      <div class="title-block">
+        <h1>Occupancy Dashboard</h1>
+        <p>Monitoraggio percentuale di occupazione sede</p>
+      </div>
+
+      <div class="status">
+        <div><strong id="lastUpdate">Ultimo aggiornamento: --</strong></div>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">Occupancy attuale</h2>
+          <p class="card-subtitle">Valore aggiornato da JSON pubblicato su GitHub</p>
+        </div>
+
+        <div class="card-body">
+          <div id="occupancyChart"></div>
+        </div>
+
+        <div class="legend-note">
+          <span><span class="dot" style="background:#33d17a"></span>Occupazione</span>
+          <span><span class="dot" style="background:rgba(255,255,255,0.10)"></span>Capacità residua</span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const dashboardData = {
+      updated_at: '2026-03-25 22:16',
+      site_name: 'Sede Milano',
+      occupancy_percentage: 68,
+      occupied_desks: 204,
+      total_desks: 300
+    };
+
+    function formatTimestamp(value) {
+      if (!value) return '--';
+
+      const normalized = String(value).replace(' ', 'T');
+      const date = new Date(normalized);
+      if (Number.isNaN(date.getTime())) return value;
+
+      return date.toLocaleString('it-IT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function getOccupancyColor(value) {
+      if (value < 40) return '#33d17a';
+      if (value < 75) return '#f6c344';
+      return '#ff5f6d';
+    }
+
+    function buildOccupancyChart(el, data) {
+      const chart = echarts.init(document.getElementById(el));
+      const occupancy = Math.max(0, Math.min(Number(data.occupancy_percentage || 0), 100));
+      const remaining = 100 - occupancy;
+      const occupancyColor = getOccupancyColor(occupancy);
+
+      chart.setOption({
+        backgroundColor: 'transparent',
+        animationDuration: 1100,
+        animationEasing: 'cubicOut',
+        title: [
+          {
+            text: `${occupancy}%`,
+            left: 'center',
+            top: '41%',
+            textStyle: {
+              color: '#f4f8ff',
+              fontSize: 56,
+              fontWeight: 800
+            }
+          },
+          {
+            text: 'occupancy',
+            left: 'center',
+            top: '56%',
+            textStyle: {
+              color: '#b2c3de',
+              fontSize: 18,
+              fontWeight: 500
+            }
+          },
+          {
+            text: `${data.occupied_desks} / ${data.total_desks} postazioni`,
+            left: 'center',
+            top: '64%',
+            textStyle: {
+              color: '#91a6c6',
+              fontSize: 16,
+              fontWeight: 500
+            }
+          }
+        ],
+        tooltip: {
+          trigger: 'item',
+          backgroundColor: 'rgba(7,17,31,0.96)',
+          borderWidth: 0,
+          textStyle: { color: '#fff' },
+          formatter: ({ name, value }) => `${name}: ${value}%`
+        },
+        series: [
+          {
+            name: 'Occupancy',
+            type: 'pie',
+            radius: ['62%', '78%'],
+            center: ['50%', '48%'],
+            startAngle: 90,
+            avoidLabelOverlap: true,
+            label: { show: false },
+            labelLine: { show: false },
+            itemStyle: {
+              borderWidth: 6,
+              borderColor: 'rgba(11,24,43,0.92)'
+            },
+            data: [
+              {
+                value: occupancy,
+                name: 'Occupazione',
+                itemStyle: {
+                  color: occupancyColor,
+                  shadowBlur: 25,
+                  shadowColor: occupancyColor + '66'
+                }
+              },
+              {
+                value: remaining,
+                name: 'Disponibilità residua',
+                itemStyle: {
+                  color: 'rgba(255,255,255,0.10)'
+                }
+              }
+            ]
+          },
+          {
+            name: 'Glow Ring',
+            type: 'pie',
+            radius: ['82%', '84%'],
+            center: ['50%', '48%'],
+            silent: true,
+            label: { show: false },
+            data: [
+              {
+                value: 100,
+                itemStyle: {
+                  color: 'rgba(76,125,255,0.18)'
+                }
+              }
+            ]
+          }
+        ],
+        graphic: [
+          {
+            type: 'text',
+            left: 'center',
+            top: '18%',
+            style: {
+              text: data.site_name || 'Sede',
+              fill: '#45d4ff',
+              font: '600 18px Inter, Segoe UI, sans-serif'
+            }
+          }
+        ]
+      });
+
+      return chart;
+    }
+
+    document.getElementById('lastUpdate').textContent = `Ultimo aggiornamento: ${formatTimestamp(dashboardData.updated_at)}`;
+
+    const occupancyChart = buildOccupancyChart('occupancyChart', dashboardData);
+    window.addEventListener('resize', () => occupancyChart.resize());
+
+    // Step successivo:
+    // sostituiamo dashboardData con una fetch verso un file JSON su GitHub Pages / raw GitHub.
+  </script>
+</body>
+</html>
 
