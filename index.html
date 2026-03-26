@@ -13,12 +13,11 @@
       --text: #f4f8ff;
       --muted: #b2c3de;
       --grid: rgba(255,255,255,0.08);
-      --blue: #4c7dff;
       --cyan: #45d4ff;
       --green: #33d17a;
       --yellow: #f6c344;
       --red: #ff5f6d;
-      --free: rgba(125, 159, 214, 0.30);
+      --free: rgba(147, 170, 215, 0.34);
       --weekend: rgba(255,255,255,0.05);
       --shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
       --radius: 18px;
@@ -101,12 +100,15 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
+      height: 100%;
     }
 
     .card {
       position: relative;
       min-width: 0;
       min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
       background: var(--panel);
       border: 1px solid var(--panel-border);
       border-radius: var(--radius);
@@ -161,20 +163,19 @@
     .card-body {
       position: relative;
       z-index: 1;
-      height: calc(100% - 108px);
-      padding: 12px 16px 16px;
       min-height: 0;
+      padding: 12px 16px 16px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
     }
 
     .chart-summary {
-      position: absolute;
-      top: 12px;
-      right: 18px;
-      z-index: 2;
       display: flex;
+      justify-content: flex-end;
       gap: 10px;
       flex-wrap: wrap;
-      pointer-events: none;
+      min-height: 58px;
     }
 
     .summary-pill {
@@ -206,7 +207,7 @@
     .chart {
       width: 100%;
       height: 100%;
-      min-height: 420px;
+      min-height: 320px;
     }
 
     .loading {
@@ -218,18 +219,22 @@
     }
 
     @media (max-width: 1200px) {
+      html, body {
+        overflow: auto;
+      }
+
+      .shell {
+        height: auto;
+        min-height: 100vh;
+      }
+
       .grid {
         grid-template-columns: 1fr;
+        height: auto;
       }
 
-      .chart-summary {
-        position: static;
-        margin-bottom: 10px;
-        pointer-events: auto;
-      }
-
-      .card-body {
-        height: calc(100% - 116px);
+      .card {
+        min-height: 560px;
       }
     }
 
@@ -245,6 +250,10 @@
 
       .status {
         text-align: left;
+      }
+
+      .chart-summary {
+        justify-content: flex-start;
       }
     }
   </style>
@@ -404,7 +413,6 @@
 
     function normalizeDashboardData(raw) {
       const cities = Array.isArray(raw?.cities) ? raw.cities : [];
-
       return {
         updated_at: raw?.updated_at || null,
         range_label: raw?.range_label || 'Ultimi 30 giorni',
@@ -427,8 +435,8 @@
     }
 
     function getOccupancyColor(value) {
-      if (value === null || value === undefined || Number.isNaN(Number(value))) return 'rgba(255,255,255,0.08)';
       const n = Number(value);
+      if (!Number.isFinite(n)) return 'rgba(255,255,255,0.14)';
       if (n < 35) return '#33d17a';
       if (n < 60) return '#45d4ff';
       if (n < 75) return '#f6c344';
@@ -438,7 +446,7 @@
     function computeMetrics(series) {
       const values = series
         .map(item => Number(item.percentage))
-        .filter(value => !Number.isNaN(value));
+        .filter(value => Number.isFinite(value));
 
       if (!values.length) {
         return { avg: 0, peak: 0, min: 0 };
@@ -454,9 +462,7 @@
     }
 
     function formatMetricValue(value) {
-      if (Math.round(value) === value) {
-        return `${value}%`;
-      }
+      if (Math.round(value) === value) return `${value}%`;
       return `${value.toFixed(1)}%`;
     }
 
@@ -483,19 +489,14 @@
       let start = null;
 
       for (let i = 0; i < series.length; i++) {
-        const isWeekend = series[i]?.is_weekend === true;
+        const weekend = series[i]?.is_weekend === true;
 
-        if (isWeekend && start === null) {
-          start = i;
-        }
+        if (weekend && start === null) start = i;
 
-        const isClosing = !isWeekend || i === series.length - 1;
-        if (start !== null && isClosing) {
-          const end = isWeekend && i === series.length - 1 ? i : i - 1;
-          bands.push([
-            { xAxis: start - 0.5 },
-            { xAxis: end + 0.5 }
-          ]);
+        const close = !weekend || i === series.length - 1;
+        if (start !== null && close) {
+          const end = weekend && i === series.length - 1 ? i : i - 1;
+          bands.push([{ xAxis: start - 0.5 }, { xAxis: end + 0.5 }]);
           start = null;
         }
       }
@@ -506,41 +507,33 @@
     function buildChartOption(city) {
       const series = Array.isArray(city.occupancy_daily) ? city.occupancy_daily : [];
       const metrics = computeMetrics(series);
-      const maxCapacity = Math.max(
-        ...series.map(item => {
-          const occupied = Number(item.occupied || 0);
-          const free = Number(item.free || 0);
-          return occupied + free;
-        }),
-        10
-      );
 
       const categories = series.map(item => item.day);
       const occupiedData = series.map(item => item.has_data ? Number(item.occupied || 0) : null);
       const freeData = series.map(item => item.has_data ? Number(item.free || 0) : null);
-      const totalData = series.map(item => item.has_data ? Number(item.occupied || 0) + Number(item.free || 0) : null);
+      const totals = series.map(item => item.has_data ? Number(item.occupied || 0) + Number(item.free || 0) : 0);
+
+      const maxCapacity = Math.max(...totals, 10);
       const weekendBands = buildWeekendBands(series);
 
       return {
         metrics,
         option: {
           backgroundColor: 'transparent',
-          animationDuration: 900,
+          animationDuration: 700,
           animationEasing: 'cubicOut',
           grid: {
-            left: 58,
-            right: 22,
-            top: 112,
-            bottom: 58,
+            left: 54,
+            right: 18,
+            top: 24,
+            bottom: 56,
             containLabel: true
           },
           tooltip: {
             trigger: 'axis',
             axisPointer: {
               type: 'shadow',
-              shadowStyle: {
-                color: 'rgba(255,255,255,0.04)'
-              }
+              shadowStyle: { color: 'rgba(255,255,255,0.04)' }
             },
             backgroundColor: 'rgba(7,17,31,0.96)',
             borderWidth: 0,
@@ -548,11 +541,12 @@
             formatter: function(params) {
               const dataIndex = params?.[0]?.dataIndex ?? 0;
               const item = series[dataIndex];
-
               if (!item) return '';
+
               if (item.is_weekend) {
                 return `Giorno ${item.day}<br><b>Weekend</b>`;
               }
+
               if (!item.has_data) {
                 return `Giorno ${item.day}<br><b>Nessun dato</b>`;
               }
@@ -574,15 +568,15 @@
             axisTick: { show: false },
             axisLabel: {
               color: '#9fb2ce',
-              fontSize: 12,
+              fontSize: 11,
               interval: 0,
-              margin: 14
+              margin: 12
             }
           },
           yAxis: {
             type: 'value',
             min: 0,
-            max: Math.ceil(maxCapacity * 1.12),
+            max: Math.ceil(maxCapacity * 1.18),
             axisLabel: {
               color: '#9fb2ce'
             },
@@ -601,9 +595,7 @@
               silent: true,
               barGap: '-100%',
               barWidth: '100%',
-              itemStyle: {
-                color: 'rgba(255,255,255,0)'
-              },
+              itemStyle: { color: 'rgba(255,255,255,0)' },
               emphasis: { disabled: true },
               markArea: {
                 silent: true,
@@ -618,35 +610,28 @@
               name: 'Occupati',
               type: 'bar',
               stack: 'capacity',
-              barWidth: '52%',
+              barWidth: '56%',
               z: 3,
               data: occupiedData,
               itemStyle: {
-                borderRadius: [8, 8, 0, 0],
                 color: function(params) {
                   const item = series[params.dataIndex];
                   if (!item || !item.has_data) return 'rgba(255,255,255,0)';
                   return getOccupancyColor(item.percentage);
                 },
-                shadowBlur: 12,
+                borderRadius: [8, 8, 0, 0],
+                shadowBlur: 10,
                 shadowColor: 'rgba(76,125,255,0.16)'
               },
               label: {
                 show: true,
                 position: 'insideBottom',
-                distance: 8,
+                distance: 6,
                 color: '#ffffff',
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: 700,
                 formatter: function(params) {
-                  const value = params.value;
-                  return value === null || value === undefined ? '' : String(value);
-                }
-              },
-              emphasis: {
-                itemStyle: {
-                  shadowBlur: 18,
-                  shadowColor: 'rgba(69,212,255,0.28)'
+                  return params.value == null ? '' : String(params.value);
                 }
               }
             },
@@ -654,43 +639,41 @@
               name: 'Liberi',
               type: 'bar',
               stack: 'capacity',
-              barWidth: '52%',
+              barWidth: '56%',
               z: 2,
               data: freeData,
               itemStyle: {
-                borderRadius: [8, 8, 0, 0],
                 color: function(params) {
                   const item = series[params.dataIndex];
                   if (!item || !item.has_data) return 'rgba(255,255,255,0)';
-                  return 'rgba(137, 165, 214, 0.34)';
+                  return 'rgba(147, 170, 215, 0.34)';
                 },
-                borderColor: 'rgba(255,255,255,0.08)',
-                borderWidth: 1
+                borderColor: 'rgba(255,255,255,0.10)',
+                borderWidth: 1,
+                borderRadius: [8, 8, 0, 0]
               },
               label: {
                 show: true,
                 position: 'top',
-                distance: 6,
+                distance: 4,
                 color: '#b9c9e3',
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: 700,
                 formatter: function(params) {
-                  const value = params.value;
-                  return value === null || value === undefined ? '' : String(value);
+                  return params.value == null ? '' : String(params.value);
                 }
-              },
-              emphasis: { disabled: true }
+              }
             }
           ],
           graphic: [
             {
               type: 'text',
-              left: 14,
-              top: 18,
+              left: 10,
+              top: 2,
               style: {
                 text: `${city.site_name || 'Sede'} · ${city.month_label || 'Ultimi 30 giorni'}`,
                 fill: '#45d4ff',
-                font: '600 16px Inter, Segoe UI, sans-serif'
+                font: '600 15px Inter, Segoe UI, sans-serif'
               }
             }
           ]
@@ -699,7 +682,8 @@
     }
 
     function buildChart(containerId, summaryId, city) {
-      const chart = echarts.init(document.getElementById(containerId));
+      const el = document.getElementById(containerId);
+      const chart = echarts.init(el, null, { renderer: 'canvas' });
       const { metrics, option } = buildChartOption(city);
       renderSummary(summaryId, metrics);
       chart.setOption(option, true);
@@ -707,7 +691,9 @@
     }
 
     function findCity(data, needle) {
-      return data.cities.find(city => String(city.site_name || '').toLowerCase().includes(needle.toLowerCase()));
+      return data.cities.find(city =>
+        String(city.site_name || '').toLowerCase().includes(needle.toLowerCase())
+      );
     }
 
     async function loadDashboardData() {
@@ -729,11 +715,17 @@
       const milano = findCity(data, 'milano') || data.cities[0];
       const roma = findCity(data, 'roma') || data.cities[1] || data.cities[0];
 
-      charts.push(buildChart('chart-milano', 'summary-milano', milano));
-      charts.push(buildChart('chart-roma', 'summary-roma', roma));
-
       document.getElementById('loading').style.display = 'none';
       document.getElementById('dashboard').style.display = 'grid';
+
+      requestAnimationFrame(function() {
+        charts.push(buildChart('chart-milano', 'summary-milano', milano));
+        charts.push(buildChart('chart-roma', 'summary-roma', roma));
+
+        setTimeout(function() {
+          charts.forEach(chart => chart.resize());
+        }, 80);
+      });
     });
 
     window.addEventListener('resize', function() {
