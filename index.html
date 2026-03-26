@@ -201,27 +201,29 @@
 
     .legend {
       display: flex;
-      gap: 16px;
-      padding: 6px 4px 2px;
+      gap: 22px;
+      padding: 8px 4px 2px;
       flex-shrink: 0;
+      justify-content: center;
+      align-items: center;
     }
 
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 500;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
       white-space: nowrap;
     }
 
     .legend-dot {
-      width: 8px;
-      height: 8px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       flex-shrink: 0;
-      opacity: 0.9;
+      opacity: 1;
+      box-shadow: 0 0 6px currentColor;
     }
 
     .loading,
@@ -319,8 +321,8 @@
           <div class="card-body">
             <div id="chart-milano" class="chart"></div>
             <div class="legend">
-              <span class="legend-item"><span class="legend-dot" style="background:#33d17a"></span>Bassa &lt;35%</span>
-              <span class="legend-item"><span class="legend-dot" style="background:#45d4ff"></span>Media 35–59%</span>
+              <span class="legend-item" style="color:#33d17a"><span class="legend-dot" style="background:#33d17a"></span>Bassa &lt;35%</span>
+              <span class="legend-item" style="color:#45d4ff"><span class="legend-dot" style="background:#45d4ff"></span>Media 35–59%</span>
             </div>
           </div>
         </section>
@@ -335,8 +337,8 @@
           <div class="card-body">
             <div id="chart-roma" class="chart"></div>
             <div class="legend">
-              <span class="legend-item"><span class="legend-dot" style="background:#f6c344"></span>Alta 60–74%</span>
-              <span class="legend-item"><span class="legend-dot" style="background:#ff5f6d"></span>Critica ≥75%</span>
+              <span class="legend-item" style="color:#f6c344"><span class="legend-dot" style="background:#f6c344"></span>Alta 60–74%</span>
+              <span class="legend-item" style="color:#ff5f6d"><span class="legend-dot" style="background:#ff5f6d"></span>Critica ≥75%</span>
             </div>
           </div>
         </section>
@@ -555,27 +557,11 @@
           yAxis: {
             type: 'value',
             min: 0,
-            max: Math.ceil(maxCapacity * 1.01),
-            interval: maxCapacity / 4,
-            axisLabel: {
-              color: '#9fb2ce',
-              fontSize: 11,
-              formatter: function(value) {
-                if (maxCapacity === 0) return '0%';
-                const pct = Math.round((value / maxCapacity) * 100);
-                if (pct > 100) return '';
-                return `${pct}%`;
-              }
-            },
-            splitLine: {
-              show: true,
-              lineStyle: {
-                color: 'rgba(255,255,255,0.13)',
-                type: 'dashed',
-                width: 1
-              }
-            },
-            axisLine: { show: false }
+            max: Math.ceil(maxCapacity * 1.12),
+            axisLabel: { show: false },
+            splitLine: { show: false },
+            axisLine: { show: false },
+            axisTick: { show: false }
           },
           series: [
             {
@@ -671,21 +657,23 @@
                 silent: true,
                 symbol: 'none',
                 animation: false,
+                label: { show: false },
                 data: [
                   {
                     yAxis: maxCapacity * 0.35,
-                    lineStyle: { color: '#33d17a', type: 'dashed', width: 1, opacity: 0.45 },
-                    label: { show: false }
+                    lineStyle: { color: '#33d17a', type: 'dashed', width: 1.5, opacity: 0.55 }
                   },
                   {
                     yAxis: maxCapacity * 0.60,
-                    lineStyle: { color: '#45d4ff', type: 'dashed', width: 1, opacity: 0.45 },
-                    label: { show: false }
+                    lineStyle: { color: '#45d4ff', type: 'dashed', width: 1.5, opacity: 0.55 }
                   },
                   {
                     yAxis: maxCapacity * 0.75,
-                    lineStyle: { color: '#f6c344', type: 'dashed', width: 1, opacity: 0.45 },
-                    label: { show: false }
+                    lineStyle: { color: '#f6c344', type: 'dashed', width: 1.5, opacity: 0.55 }
+                  },
+                  {
+                    yAxis: maxCapacity * 1.0,
+                    lineStyle: { color: '#ff5f6d', type: 'dashed', width: 1.5, opacity: 0.55 }
                   }
                 ]
               }
@@ -701,6 +689,45 @@
       const { metrics, option } = buildChartOption(city);
       renderSummary(summaryId, metrics);
       chart.setOption(option, true);
+
+      // Add colored y-axis threshold labels via graphic after render
+      chart.on('finished', function() {
+        const series = Array.isArray(city.occupancy_daily) ? city.occupancy_daily : [];
+        const totals = series.map(item => item.has_data ? Number(item.occupied||0)+Number(item.free||0) : 0);
+        const maxCap = Math.max(...totals, 10);
+        const yMax = Math.ceil(maxCap * 1.12);
+        const model = chart.getModel();
+        const gridRect = chart.convertToPixel({ gridIndex: 0 }, [0, 0]);
+
+        const thresholds = [
+          { pct: 0,    label: '0%',    color: 'rgba(147,170,215,0.55)' },
+          { pct: 0.35, label: '35%',   color: '#33d17a' },
+          { pct: 0.60, label: '60%',   color: '#45d4ff' },
+          { pct: 0.75, label: '75%',   color: '#f6c344' },
+          { pct: 1.00, label: '100%',  color: '#ff5f6d' }
+        ];
+
+        const graphicItems = thresholds.map(t => {
+          const yVal = maxCap * t.pct;
+          const coord = chart.convertToPixel({ gridIndex: 0 }, [0, yVal]);
+          return {
+            type: 'text',
+            x: coord[0] - 38,
+            y: coord[1] - 7,
+            style: {
+              text: t.label,
+              fill: t.color,
+              font: `700 11px Inter, "Segoe UI", sans-serif`,
+              textAlign: 'right'
+            },
+            silent: true,
+            z: 10
+          };
+        });
+
+        chart.setOption({ graphic: graphicItems }, false);
+      });
+
       return chart;
     }
 
