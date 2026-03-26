@@ -17,7 +17,7 @@
       --green: #33d17a;
       --yellow: #f6c344;
       --red: #ff5f6d;
-      --free: rgba(147, 170, 215, 0.34);
+      --free: rgba(147, 170, 215, 0.32);
       --weekend: rgba(255,255,255,0.05);
       --shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
       --radius: 18px;
@@ -210,12 +210,27 @@
       min-height: 320px;
     }
 
-    .loading {
+    .loading,
+    .error-state {
       display: grid;
       place-items: center;
       height: 100%;
       color: var(--muted);
       font-size: 22px;
+      text-align: center;
+      padding: 32px;
+    }
+
+    .error-state {
+      display: none;
+      color: #ffd7dc;
+    }
+
+    .error-state small {
+      display: block;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
     }
 
     @media (max-width: 1200px) {
@@ -272,6 +287,12 @@
 
     <main class="main">
       <div id="loading" class="loading">Caricamento dashboard…</div>
+      <div id="errorState" class="error-state">
+        <div>
+          Impossibile caricare i dati dashboard.
+          <small>Controlla che <code>data/data_occupancy_mensile_wp.json</code> sia pubblicato correttamente.</small>
+        </div>
+      </div>
 
       <div id="dashboard" class="grid" style="display:none;">
         <section class="card">
@@ -304,85 +325,7 @@
   <script>
     const DATA_URL = './data/data_occupancy_mensile_wp.json';
     const CACHE_BUSTER = Date.now();
-
-    const fallbackData = {
-      updated_at: '2026-03-26 18:00',
-      range_label: 'Ultimi 30 giorni',
-      cities: [
-        {
-          site_name: 'EH Milano',
-          month_label: 'Ultimi 30 giorni',
-          occupancy_daily: [
-            { day: '25', date: '2026-02-25', occupied: 50, free: 72, percentage: 41, is_weekend: false, has_data: true },
-            { day: '26', date: '2026-02-26', occupied: 49, free: 73, percentage: 40.2, is_weekend: false, has_data: true },
-            { day: '27', date: '2026-02-27', occupied: 33, free: 89, percentage: 27, is_weekend: false, has_data: true },
-            { day: '28', date: '2026-02-28', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '01', date: '2026-03-01', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '02', date: '2026-03-02', occupied: 61, free: 61, percentage: 50, is_weekend: false, has_data: true },
-            { day: '03', date: '2026-03-03', occupied: 50, free: 72, percentage: 41, is_weekend: false, has_data: true },
-            { day: '04', date: '2026-03-04', occupied: 44, free: 78, percentage: 36.1, is_weekend: false, has_data: true },
-            { day: '05', date: '2026-03-05', occupied: 34, free: 88, percentage: 27.9, is_weekend: false, has_data: true },
-            { day: '06', date: '2026-03-06', occupied: 36, free: 86, percentage: 29.5, is_weekend: false, has_data: true },
-            { day: '07', date: '2026-03-07', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '08', date: '2026-03-08', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '09', date: '2026-03-09', occupied: 50, free: 72, percentage: 41, is_weekend: false, has_data: true },
-            { day: '10', date: '2026-03-10', occupied: 61, free: 61, percentage: 50, is_weekend: false, has_data: true },
-            { day: '11', date: '2026-03-11', occupied: 53, free: 69, percentage: 43.4, is_weekend: false, has_data: true },
-            { day: '12', date: '2026-03-12', occupied: 51, free: 71, percentage: 41.8, is_weekend: false, has_data: true },
-            { day: '13', date: '2026-03-13', occupied: 34, free: 88, percentage: 27.9, is_weekend: false, has_data: true },
-            { day: '14', date: '2026-03-14', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '15', date: '2026-03-15', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '16', date: '2026-03-16', occupied: 58, free: 64, percentage: 47.5, is_weekend: false, has_data: true },
-            { day: '17', date: '2026-03-17', occupied: 52, free: 70, percentage: 42.6, is_weekend: false, has_data: true },
-            { day: '18', date: '2026-03-18', occupied: 64, free: 58, percentage: 52.5, is_weekend: false, has_data: true },
-            { day: '19', date: '2026-03-19', occupied: 54, free: 68, percentage: 44.3, is_weekend: false, has_data: true },
-            { day: '20', date: '2026-03-20', occupied: 32, free: 90, percentage: 26.2, is_weekend: false, has_data: true },
-            { day: '21', date: '2026-03-21', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '22', date: '2026-03-22', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '23', date: '2026-03-23', occupied: 53, free: 69, percentage: 43.4, is_weekend: false, has_data: true },
-            { day: '24', date: '2026-03-24', occupied: 63, free: 59, percentage: 51.6, is_weekend: false, has_data: true },
-            { day: '25', date: '2026-03-25', occupied: 55, free: 67, percentage: 45.1, is_weekend: false, has_data: true },
-            { day: '26', date: '2026-03-26', occupied: 57, free: 65, percentage: 46.7, is_weekend: false, has_data: true }
-          ]
-        },
-        {
-          site_name: 'EH Roma A',
-          month_label: 'Ultimi 30 giorni',
-          occupancy_daily: [
-            { day: '25', date: '2026-02-25', occupied: 166, free: 111, percentage: 59.9, is_weekend: false, has_data: true },
-            { day: '26', date: '2026-02-26', occupied: 166, free: 111, percentage: 59.9, is_weekend: false, has_data: true },
-            { day: '27', date: '2026-02-27', occupied: 119, free: 158, percentage: 43, is_weekend: false, has_data: true },
-            { day: '28', date: '2026-02-28', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '01', date: '2026-03-01', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '02', date: '2026-03-02', occupied: 166, free: 111, percentage: 59.9, is_weekend: false, has_data: true },
-            { day: '03', date: '2026-03-03', occupied: 200, free: 77, percentage: 72.2, is_weekend: false, has_data: true },
-            { day: '04', date: '2026-03-04', occupied: 218, free: 59, percentage: 78.7, is_weekend: false, has_data: true },
-            { day: '05', date: '2026-03-05', occupied: 119, free: 158, percentage: 43, is_weekend: false, has_data: true },
-            { day: '06', date: '2026-03-06', occupied: 124, free: 153, percentage: 44.8, is_weekend: false, has_data: true },
-            { day: '07', date: '2026-03-07', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '08', date: '2026-03-08', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '09', date: '2026-03-09', occupied: 171, free: 106, percentage: 61.7, is_weekend: false, has_data: true },
-            { day: '10', date: '2026-03-10', occupied: 188, free: 89, percentage: 67.9, is_weekend: false, has_data: true },
-            { day: '11', date: '2026-03-11', occupied: 188, free: 89, percentage: 67.9, is_weekend: false, has_data: true },
-            { day: '12', date: '2026-03-12', occupied: 191, free: 86, percentage: 69, is_weekend: false, has_data: true },
-            { day: '13', date: '2026-03-13', occupied: 133, free: 144, percentage: 48, is_weekend: false, has_data: true },
-            { day: '14', date: '2026-03-14', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '15', date: '2026-03-15', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '16', date: '2026-03-16', occupied: 192, free: 85, percentage: 69.3, is_weekend: false, has_data: true },
-            { day: '17', date: '2026-03-17', occupied: 189, free: 88, percentage: 68.2, is_weekend: false, has_data: true },
-            { day: '18', date: '2026-03-18', occupied: 199, free: 78, percentage: 71.8, is_weekend: false, has_data: true },
-            { day: '19', date: '2026-03-19', occupied: 196, free: 81, percentage: 70.8, is_weekend: false, has_data: true },
-            { day: '20', date: '2026-03-20', occupied: 135, free: 142, percentage: 48.7, is_weekend: false, has_data: true },
-            { day: '21', date: '2026-03-21', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '22', date: '2026-03-22', occupied: null, free: null, percentage: null, is_weekend: true, has_data: false },
-            { day: '23', date: '2026-03-23', occupied: 163, free: 114, percentage: 58.8, is_weekend: false, has_data: true },
-            { day: '24', date: '2026-03-24', occupied: 179, free: 98, percentage: 64.6, is_weekend: false, has_data: true },
-            { day: '25', date: '2026-03-25', occupied: 177, free: 100, percentage: 63.9, is_weekend: false, has_data: true },
-            { day: '26', date: '2026-03-26', occupied: 181, free: 96, percentage: 65.3, is_weekend: false, has_data: true }
-          ]
-        }
-      ]
-    };
+    const charts = [];
 
     function withCacheBuster(path) {
       const separator = path.includes('?') ? '&' : '?';
@@ -409,6 +352,13 @@
         hour: '2-digit',
         minute: '2-digit'
       });
+    }
+
+    function formatDisplayDate(isoDate) {
+      if (!isoDate) return '';
+      const date = new Date(`${isoDate}T00:00:00`);
+      if (Number.isNaN(date.getTime())) return isoDate;
+      return date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
     }
 
     function normalizeDashboardData(raw) {
@@ -453,7 +403,6 @@
       }
 
       const total = values.reduce((sum, value) => sum + value, 0);
-
       return {
         avg: Math.round((total / values.length) * 10) / 10,
         peak: Math.max(...values),
@@ -486,19 +435,24 @@
 
     function buildWeekendBands(series) {
       const bands = [];
-      let start = null;
+      let startDate = null;
 
       for (let i = 0; i < series.length; i++) {
-        const weekend = series[i]?.is_weekend === true;
+        const item = series[i];
+        const weekend = item?.is_weekend === true;
 
-        if (weekend && start === null) start = i;
-
-        const close = !weekend || i === series.length - 1;
-        if (start !== null && close) {
-          const end = weekend && i === series.length - 1 ? i : i - 1;
-          bands.push([{ xAxis: start - 0.5 }, { xAxis: end + 0.5 }]);
-          start = null;
+        if (weekend && startDate === null) {
+          startDate = item.date;
         }
+
+        if (!weekend && startDate !== null) {
+          bands.push([{ xAxis: startDate }, { xAxis: series[i - 1].date }]);
+          startDate = null;
+        }
+      }
+
+      if (startDate !== null) {
+        bands.push([{ xAxis: startDate }, { xAxis: series[series.length - 1].date }]);
       }
 
       return bands;
@@ -508,13 +462,12 @@
       const series = Array.isArray(city.occupancy_daily) ? city.occupancy_daily : [];
       const metrics = computeMetrics(series);
 
-      const categories = series.map(item => item.day);
+      const categories = series.map(item => item.date);
       const occupiedData = series.map(item => item.has_data ? Number(item.occupied || 0) : null);
       const freeData = series.map(item => item.has_data ? Number(item.free || 0) : null);
       const totals = series.map(item => item.has_data ? Number(item.occupied || 0) + Number(item.free || 0) : 0);
-
-      const maxCapacity = Math.max(...totals, 10);
       const weekendBands = buildWeekendBands(series);
+      const maxCapacity = Math.max(...totals, 10);
 
       return {
         metrics,
@@ -544,15 +497,15 @@
               if (!item) return '';
 
               if (item.is_weekend) {
-                return `Giorno ${item.day}<br><b>Weekend</b>`;
+                return `${formatDisplayDate(item.date)}<br><b>Weekend</b>`;
               }
 
               if (!item.has_data) {
-                return `Giorno ${item.day}<br><b>Nessun dato</b>`;
+                return `${formatDisplayDate(item.date)}<br><b>Nessun dato</b>`;
               }
 
               return [
-                `Giorno ${item.day}`,
+                formatDisplayDate(item.date),
                 `Occupati: <b>${item.occupied}</b>`,
                 `Liberi: <b>${item.free}</b>`,
                 `Occupancy: <b>${formatMetricValue(Number(item.percentage || 0))}</b>`
@@ -570,7 +523,10 @@
               color: '#9fb2ce',
               fontSize: 11,
               interval: 0,
-              margin: 12
+              margin: 12,
+              formatter: function(value) {
+                return value ? value.slice(-2) : '';
+              }
             }
           },
           yAxis: {
@@ -646,7 +602,7 @@
                 color: function(params) {
                   const item = series[params.dataIndex];
                   if (!item || !item.has_data) return 'rgba(255,255,255,0)';
-                  return 'rgba(147, 170, 215, 0.34)';
+                  return 'rgba(147, 170, 215, 0.32)';
                 },
                 borderColor: 'rgba(255,255,255,0.10)',
                 borderWidth: 1,
@@ -696,37 +652,40 @@
       );
     }
 
-    async function loadDashboardData() {
+    async function initDashboard() {
       try {
-        const json = await fetchJson(DATA_URL);
-        return normalizeDashboardData(json);
+        const raw = await fetchJson(DATA_URL);
+        const data = normalizeDashboardData(raw);
+
+        if (!data.cities.length) {
+          throw new Error('JSON senza cities');
+        }
+
+        document.getElementById('lastUpdate').textContent =
+          'Ultimo aggiornamento: ' + formatTimestamp(data.updated_at);
+
+        const milano = findCity(data, 'milano') || data.cities[0];
+        const roma = findCity(data, 'roma') || data.cities[1] || data.cities[0];
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'grid';
+
+        requestAnimationFrame(function() {
+          charts.push(buildChart('chart-milano', 'summary-milano', milano));
+          charts.push(buildChart('chart-roma', 'summary-roma', roma));
+
+          setTimeout(function() {
+            charts.forEach(chart => chart.resize());
+          }, 80);
+        });
       } catch (error) {
-        console.warn('Errore caricamento JSON, uso fallback locale:', error);
-        return normalizeDashboardData(fallbackData);
+        console.error('Errore dashboard:', error);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('errorState').style.display = 'grid';
       }
     }
 
-    const charts = [];
-
-    loadDashboardData().then(function(data) {
-      document.getElementById('lastUpdate').textContent =
-        'Ultimo aggiornamento: ' + formatTimestamp(data.updated_at);
-
-      const milano = findCity(data, 'milano') || data.cities[0];
-      const roma = findCity(data, 'roma') || data.cities[1] || data.cities[0];
-
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'grid';
-
-      requestAnimationFrame(function() {
-        charts.push(buildChart('chart-milano', 'summary-milano', milano));
-        charts.push(buildChart('chart-roma', 'summary-roma', roma));
-
-        setTimeout(function() {
-          charts.forEach(chart => chart.resize());
-        }, 80);
-      });
-    });
+    initDashboard();
 
     window.addEventListener('resize', function() {
       charts.forEach(chart => chart.resize());
