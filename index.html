@@ -149,8 +149,8 @@
     }
 
     .city-icon {
-      width: 50px;
-      height: 50px;
+      width: 32px;
+      height: 32px;
       fill: #ffffff;
       opacity: 1;
       flex-shrink: 0;
@@ -543,8 +543,8 @@
           grid: {
             left: 52,
             right: 12,
-            top: 10,
-            bottom: 52,
+            top: 24,
+            bottom: 58,
             containLabel: true
           },
           tooltip: {
@@ -632,9 +632,7 @@
               emphasis: { disabled: true },
               markArea: {
                 silent: true,
-                itemStyle: {
-                  color: 'rgba(255,255,255,0.05)'
-                },
+                itemStyle: { color: 'rgba(255,255,255,0.05)' },
                 data: weekendBands
               },
               data: categories.map(() => 0)
@@ -652,21 +650,70 @@
                 label: { show: false },
                 data: monthSeparators.map(xVal => ({
                   xAxis: xVal,
-                  lineStyle: {
-                    color: 'rgba(255,255,255,0.30)',
-                    type: 'solid',
-                    width: 2,
-                    cap: 'round'
-                  }
+                  lineStyle: { color: 'rgba(255,255,255,0.30)', type: 'solid', width: 2 }
                 }))
+              }
+            },
+            {
+              // Invisible full-height bar just to carry the "liberi" top label
+              name: 'Totale',
+              type: 'bar',
+              barWidth: '44%',
+              barGap: '-100%',
+              z: 1,
+              silent: true,
+              data: series.map(item => item.has_data ? Number(item.occupied||0) + Number(item.free||0) : null),
+              itemStyle: { color: 'rgba(255,255,255,0)' },
+              emphasis: { disabled: true },
+              label: {
+                show: true,
+                position: 'top',
+                distance: 5,
+                color: '#e8f0ff',
+                fontSize: 11,
+                fontWeight: 700,
+                textShadowColor: 'rgba(0,0,0,0.9)',
+                textShadowBlur: 3,
+                formatter: function(params) {
+                  const item = series[params.dataIndex];
+                  if (!item || !item.has_data) return '';
+                  return String(Number(item.free || 0));
+                }
               }
             },
             {
               name: 'Occupati',
               type: 'bar',
-              stack: 'capacity',
-              barWidth: '56%',
+              barWidth: '44%',
+              barGap: '-100%',
               z: 3,
+              data: series.map(item => item.has_data ? Number(item.occupied||0) + Number(item.free||0) : null),
+              itemStyle: {
+                color: function(params) {
+                  const item = series[params.dataIndex];
+                  if (!item || !item.has_data) return 'rgba(255,255,255,0)';
+                  return getOccupancyColor(item.percentage);
+                },
+                borderRadius: [6, 6, 0, 0]
+              },
+              emphasis: {
+                itemStyle: {
+                  color: function(params) {
+                    const item = series[params.dataIndex];
+                    if (!item || !item.has_data) return 'rgba(255,255,255,0)';
+                    return getOccupancyColor(item.percentage);
+                  }
+                }
+              },
+              label: { show: false }
+            },
+            {
+              // Colored bar at occupied height only — drawn on top, same width, transparent above
+              name: 'OccupatiColored',
+              type: 'bar',
+              barWidth: '44%',
+              barGap: '-100%',
+              z: 4,
               data: occupiedData,
               itemStyle: {
                 color: function(params) {
@@ -674,54 +721,30 @@
                   if (!item || !item.has_data) return 'rgba(255,255,255,0)';
                   return getOccupancyColor(item.percentage);
                 },
-                borderRadius: [8, 8, 0, 0],
-                shadowBlur: 10,
-                shadowColor: 'rgba(76,125,255,0.16)'
+                borderRadius: [6, 6, 0, 0]
+              },
+              emphasis: {
+                itemStyle: {
+                  color: function(params) {
+                    const item = series[params.dataIndex];
+                    if (!item || !item.has_data) return 'rgba(255,255,255,0)';
+                    return getOccupancyColor(item.percentage);
+                  }
+                }
               },
               label: {
                 show: true,
-                position: 'insideBottom',
-                distance: 6,
-                color: '#ffffff',
-                fontSize: 12,
+                position: 'bottom',
+                distance: 0,
+                fontSize: 11,
                 fontWeight: 700,
-                textShadowColor: 'rgba(0,0,0,1)',
-                textShadowBlur: 4,
-                textShadowOffsetX: 0,
-                textShadowOffsetY: 1,
-                formatter: function(params) {
-                  return params.value == null ? '' : String(params.value);
-                }
-              }
-            },
-            {
-              name: 'Liberi',
-              type: 'bar',
-              stack: 'capacity',
-              barWidth: '56%',
-              z: 2,
-              data: freeData,
-              itemStyle: {
+                textShadowColor: 'rgba(0,0,0,0.9)',
+                textShadowBlur: 3,
                 color: function(params) {
                   const item = series[params.dataIndex];
-                  if (!item || !item.has_data) return 'rgba(255,255,255,0)';
-                  return 'rgba(147, 170, 215, 0.32)';
+                  if (!item || !item.has_data) return 'rgba(0,0,0,0)';
+                  return getOccupancyColor(item.percentage);
                 },
-                borderColor: 'rgba(255,255,255,0.10)',
-                borderWidth: 1,
-                borderRadius: [8, 8, 0, 0]
-              },
-              label: {
-                show: true,
-                position: 'top',
-                distance: 4,
-                color: '#e8f0ff',
-                fontSize: 12,
-                fontWeight: 700,
-                textShadowColor: 'rgba(0,0,0,1)',
-                textShadowBlur: 4,
-                textShadowOffsetX: 0,
-                textShadowOffsetY: 1,
                 formatter: function(params) {
                   return params.value == null ? '' : String(params.value);
                 }
@@ -739,22 +762,10 @@
                 animation: false,
                 label: { show: false },
                 data: [
-                  {
-                    yAxis: maxCapacity * 0.25,
-                    lineStyle: { color: '#33d17a', type: 'dashed', width: 1.5, opacity: 0.55 }
-                  },
-                  {
-                    yAxis: maxCapacity * 0.50,
-                    lineStyle: { color: '#45d4ff', type: 'dashed', width: 1.5, opacity: 0.55 }
-                  },
-                  {
-                    yAxis: maxCapacity * 0.75,
-                    lineStyle: { color: '#f6c344', type: 'dashed', width: 1.5, opacity: 0.55 }
-                  },
-                  {
-                    yAxis: maxCapacity * 1.0,
-                    lineStyle: { color: '#ff5f6d', type: 'dashed', width: 1.5, opacity: 0.55 }
-                  }
+                  { yAxis: maxCapacity * 0.25, lineStyle: { color: '#33d17a', type: 'dashed', width: 1.5, opacity: 0.55 } },
+                  { yAxis: maxCapacity * 0.50, lineStyle: { color: '#45d4ff', type: 'dashed', width: 1.5, opacity: 0.55 } },
+                  { yAxis: maxCapacity * 0.75, lineStyle: { color: '#f6c344', type: 'dashed', width: 1.5, opacity: 0.55 } },
+                  { yAxis: maxCapacity * 1.0,  lineStyle: { color: '#ff5f6d', type: 'dashed', width: 1.5, opacity: 0.55 } }
                 ]
               }
             }
