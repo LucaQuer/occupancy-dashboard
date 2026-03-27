@@ -50,7 +50,7 @@
       height: 100vh;
       padding: 18px;
       display: grid;
-      grid-template-rows: auto 1fr;
+      grid-template-rows: auto 1fr auto;
       gap: 14px;
     }
 
@@ -87,7 +87,9 @@
 
     .main {
       min-height: 0;
-      display: grid;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
     }
 
     .grid {
@@ -95,7 +97,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
-      height: 100%;
+      flex: 1;
     }
 
     .card {
@@ -249,6 +251,38 @@
       font-size: 14px;
     }
 
+    .global-legend {
+      display: flex;
+      gap: 0;
+      justify-content: center;
+      align-items: center;
+      padding: 8px 0 4px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .global-legend .legend-item {
+      padding: 0 28px;
+    }
+
+    .global-legend .legend-sep {
+      width: 1px;
+      height: 20px;
+      background: linear-gradient(180deg, transparent, rgba(255,255,255,0.20), transparent);
+      flex-shrink: 0;
+    }
+
+    .city-icon {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+      vertical-align: middle;
+      margin-right: 6px;
+      opacity: 0.9;
+      position: relative;
+      top: -1px;
+    }
+
     @media (max-width: 1200px) {
       html, body {
         overflow: auto;
@@ -314,34 +348,41 @@
         <section class="card">
           <div class="card-header">
             <div class="card-header-row">
-              <span class="eyebrow">Milano</span>
+              <span class="eyebrow">
+                <svg class="city-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M24.64,7.64V8c0,11.08-0.214,15.366-1.6,21.64h-1.68v-26h-5V1c0-0.199-0.161-0.36-0.36-0.36S15.64,0.801,15.64,1v2.64h-5v26H8.102C7.614,27.138,7.36,24.57,7.36,22c0-3.561,0.472-7.089,1.403-10.489l0.055-0.202L4.382,6.873L4.157,7.314C1.823,11.888,0.64,16.829,0.64,22c0,2.584,0.316,5.15,0.919,7.64H0.64v0.721h30.72V30v-0.36v-22C31.36,7.64,24.64,7.64,24.64,7.64z M24.575,25.36H26v-0.72h-1.323c0.563-4.151,0.68-8.55,0.683-16.28h0.281c0.001,7.53,0.069,12.673,3.822,21.28h-5.686C24.104,28.144,24.367,26.754,24.575,25.36z M11.36,4.36h9.28v25.28h-9.28V4.36z M4.576,8.085l3.438,3.438c-0.186,0.694-0.341,1.397-0.49,2.101L3.771,9.87C4.021,9.269,4.287,8.674,4.576,8.085z M1.55,25.36H3v-0.72H1.482c-0.062-0.758-0.102-1.517-0.111-2.28H3v-0.72H1.37c0.042-3.831,0.755-7.528,2.116-11.037l3.867,3.867c-0.136,0.72-0.261,1.443-0.357,2.17H5v0.72h1.921C6.745,18.897,6.64,20.444,6.64,22c0,2.57,0.251,5.136,0.731,7.64H2.296C1.948,28.236,1.703,26.805,1.55,25.36z M30.246,29.64c-3.822-8.649-3.884-13.496-3.885-21.28h4.278v2.28H29v0.72h1.64v1.28H29v0.72h1.64v16.28H30.246z M20,6.64v0.72h-8V6.64H20z M12,9.64h8v0.72h-8V9.64z M12,12.64h8v0.72h-8V12.64z M12,15.64h8v0.72h-8V15.64z M12,18.64h8v0.721h-8V18.64z M12,21.64h8v0.721h-8V21.64z M12,24.64h8v0.721h-8V24.64z"/></svg>
+                Milano
+              </span>
               <div class="chart-summary" id="summary-milano"></div>
             </div>
           </div>
           <div class="card-body">
             <div id="chart-milano" class="chart"></div>
-            <div class="legend">
-              <span class="legend-item" style="color:#33d17a"><span class="legend-dot" style="background:#33d17a"></span>Bassa &lt;35%</span>
-              <span class="legend-item" style="color:#45d4ff"><span class="legend-dot" style="background:#45d4ff"></span>Media 35–59%</span>
-            </div>
           </div>
         </section>
 
         <section class="card">
           <div class="card-header">
             <div class="card-header-row">
-              <span class="eyebrow">Roma</span>
+              <span class="eyebrow">
+                <svg class="city-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M30.36,27.64V10c0-0.199-0.161-0.36-0.36-0.36H16c-0.199,0-0.36,0.161-0.36,0.36v5.64h-2.381l-1.918-5.754C11.292,9.739,11.155,9.64,11,9.64H9.259L7.341,3.886C7.292,3.739,7.155,3.64,7,3.64H2C1.801,3.64,1.64,3.801,1.64,4v5.64H1v0.72h0.64v5.28H1v0.72h0.64v5.28H1v0.721h0.64v5.279H1v0.721h30V27.64H30.36z M16.36,10.36h13.28v17.28h-1.28V25c0-0.75-0.61-1.36-1.36-1.36s-1.36,0.61-1.36,1.36v0.779l-1.279-3.838V19c0-0.75-0.61-1.36-1.36-1.36s-1.36,0.61-1.36,1.36v2.64h-0.38l-1.918-5.753c-0.05-0.148-0.188-0.247-0.343-0.247h-2.64V10.36z M27.64,27.64h-1.28V25c0-0.353,0.287-0.64,0.64-0.64s0.64,0.287,0.64,0.64V27.64z M22.36,19c0-0.353,0.287-0.64,0.64-0.64s0.64,0.287,0.64,0.64v2.64h-1.28V19z M2.36,4.36h4.381l1.76,5.28H2.36V4.36z M2.36,10.36h8.381l1.76,5.28H10.36V13c0-0.75-0.61-1.36-1.36-1.36S7.64,12.25,7.64,13v2.64H6.36V13c0-0.75-0.61-1.36-1.36-1.36S3.64,12.25,3.64,13v2.64H2.36V10.36z M8.36,15.64V13c0-0.353,0.287-0.64,0.64-0.64S9.64,12.647,9.64,13v2.64H8.36z M4.36,15.64V13c0-0.353,0.287-0.64,0.64-0.64S5.64,12.647,5.64,13v2.64H4.36z M2.36,16.36h16.38l1.76,5.28h-2.14V19c0-0.75-0.61-1.36-1.36-1.36s-1.36,0.61-1.36,1.36v2.64h-1.28V19c0-0.75-0.61-1.36-1.36-1.36s-1.36,0.61-1.36,1.36v2.64h-1.28V19c0-0.75-0.61-1.36-1.36-1.36S7.64,18.25,7.64,19v2.64H6.36V19c0-0.75-0.61-1.36-1.36-1.36S3.64,18.25,3.64,19v2.64H2.36V16.36z M16.36,21.64V19c0-0.353,0.287-0.64,0.64-0.64c0.353,0,0.64,0.287,0.64,0.64v2.64H16.36z M12.36,21.64V19c0-0.353,0.287-0.64,0.64-0.64s0.64,0.287,0.64,0.64v2.64H12.36z M8.36,21.64V19c0-0.353,0.287-0.64,0.64-0.64S9.64,18.647,9.64,19v2.64H8.36z M4.36,21.64V19c0-0.353,0.287-0.64,0.64-0.64S5.64,18.647,5.64,19v2.64H4.36z M2.36,22.36H22h1.74l1.76,5.279h-3.14V25c0-0.75-0.61-1.36-1.36-1.36s-1.36,0.61-1.36,1.36v2.64h-1.28V25c0-0.75-0.61-1.36-1.36-1.36s-1.36,0.61-1.36,1.36v2.64h-1.28V25c0-0.75-0.61-1.36-1.36-1.36s-1.36,0.61-1.36,1.36v2.64h-1.28V25c0-0.75-0.61-1.36-1.36-1.36S7.64,24.25,7.64,25v2.64H6.36V25c0-0.75-0.61-1.36-1.36-1.36S3.64,24.25,3.64,25v2.64H2.36V22.36z M20.36,25c0-0.353,0.287-0.64,0.64-0.64s0.64,0.287,0.64,0.64v2.64h-1.28V25z M16.36,25c0-0.353,0.287-0.64,0.64-0.64c0.353,0,0.64,0.287,0.64,0.64v2.64h-1.28C16.36,27.64,16.36,25,16.36,25z M12.36,25c0-0.353,0.287-0.64,0.64-0.64s0.64,0.287,0.64,0.64v2.64h-1.28C12.36,27.64,12.36,25,12.36,25z M8.36,25c0-0.353,0.287-0.64,0.64-0.64S9.64,24.647,9.64,25v2.64H8.36V25z M4.36,25c0-0.353,0.287-0.64,0.64-0.64S5.64,24.647,5.64,25v2.64H4.36V25z M26,22.36h2c0.199,0,0.36-0.161,0.36-0.36v-3c0-0.75-0.61-1.36-1.36-1.36s-1.36,0.61-1.36,1.36v3C25.64,22.199,25.801,22.36,26,22.36z M27,18.36c0.353,0,0.64,0.287,0.64,0.64v2.64h-1.28V19C26.36,18.647,26.647,18.36,27,18.36z M4.64,6h0.72v2H4.64V6z M23.36,14h-0.72v-2h0.721L23.36,14L23.36,14z M19.36,14h-0.72v-2h0.721L19.36,14L19.36,14z M27.36,14h-0.72v-2h0.721L27.36,14L27.36,14z"/></svg>
+                Roma
+              </span>
               <div class="chart-summary" id="summary-roma"></div>
             </div>
           </div>
           <div class="card-body">
             <div id="chart-roma" class="chart"></div>
-            <div class="legend">
-              <span class="legend-item" style="color:#f6c344"><span class="legend-dot" style="background:#f6c344"></span>Alta 60–74%</span>
-              <span class="legend-item" style="color:#ff5f6d"><span class="legend-dot" style="background:#ff5f6d"></span>Critica ≥75%</span>
-            </div>
           </div>
         </section>
+      </div>
+
+      <!-- Global centered legend -->
+      <div id="global-legend" class="global-legend" style="display:none;">
+        <span class="legend-item" style="color:#33d17a"><span class="legend-dot" style="background:#33d17a; box-shadow: 0 0 8px #33d17a88;"></span>Bassa &lt;25%</span>
+        <span class="legend-item" style="color:#45d4ff"><span class="legend-dot" style="background:#45d4ff; box-shadow: 0 0 8px #45d4ff88;"></span>Media 25–49%</span>
+        <span class="legend-sep"></span>
+        <span class="legend-item" style="color:#f6c344"><span class="legend-dot" style="background:#f6c344; box-shadow: 0 0 8px #f6c34488;"></span>Alta 50–74%</span>
+        <span class="legend-item" style="color:#ff5f6d"><span class="legend-dot" style="background:#ff5f6d; box-shadow: 0 0 8px #ff5f6d88;"></span>Critica ≥75%</span>
       </div>
     </main>
   </div>
@@ -411,8 +452,8 @@
     function getOccupancyColor(value) {
       const n = Number(value);
       if (!Number.isFinite(n)) return 'rgba(255,255,255,0.14)';
-      if (n < 35) return '#33d17a';
-      if (n < 60) return '#45d4ff';
+      if (n < 25) return '#33d17a';
+      if (n < 50) return '#45d4ff';
       if (n < 75) return '#f6c344';
       return '#ff5f6d';
     }
@@ -492,7 +533,28 @@
       const freeData = series.map(item => item.has_data ? Number(item.free || 0) : null);
       const totals = series.map(item => item.has_data ? Number(item.occupied || 0) + Number(item.free || 0) : 0);
       const weekendBands = buildWeekendBands(series);
+      const monthSeparators = buildMonthSeparators(series);
       const maxCapacity = Math.max(...totals, 10);
+
+      // Build alternating month background bands
+      const monthBandData = [];
+      let prevMonth = -1, bandStart = null;
+      let toggle = false;
+      series.forEach((item, i) => {
+        if (!item.date) return;
+        const m = new Date(item.date + 'T00:00:00').getMonth();
+        if (m !== prevMonth) {
+          if (bandStart !== null && toggle) {
+            monthBandData.push([{ xAxis: bandStart }, { xAxis: series[i-1].date }]);
+          }
+          bandStart = item.date;
+          prevMonth = m;
+          toggle = !toggle;
+        }
+        if (i === series.length - 1 && bandStart !== null && toggle) {
+          monthBandData.push([{ xAxis: bandStart }, { xAxis: item.date }]);
+        }
+      });
 
       return {
         metrics,
@@ -504,7 +566,7 @@
             left: 52,
             right: 12,
             top: 10,
-            bottom: 48,
+            bottom: 72,
             containLabel: true
           },
           tooltip: {
@@ -548,10 +610,36 @@
               color: '#9fb2ce',
               fontSize: 11,
               interval: 0,
-              margin: 12,
-              formatter: function(value) {
-                return value ? value.slice(-2) : '';
-              }
+              margin: 4,
+              rich: {
+                day: {
+                  color: '#c8d8f0',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  lineHeight: 16
+                },
+                m0: { color: 'rgba(100,160,255,0.80)', fontSize: 9, fontWeight: 600, lineHeight: 14 },
+                m1: { color: 'rgba(69,212,255,0.80)', fontSize: 9, fontWeight: 600, lineHeight: 14 },
+                m2: { color: 'rgba(100,220,160,0.80)', fontSize: 9, fontWeight: 600, lineHeight: 14 },
+                m3: { color: 'rgba(246,195,68,0.80)', fontSize: 9, fontWeight: 600, lineHeight: 14 },
+                m4: { color: 'rgba(255,95,109,0.80)', fontSize: 9, fontWeight: 600, lineHeight: 14 },
+                m5: { color: 'rgba(180,120,255,0.80)', fontSize: 9, fontWeight: 600, lineHeight: 14 }
+              },
+              formatter: (function() {
+                // Build a map of month index → rich style key (cycles through m0–m5)
+                const seen = {};
+                let counter = 0;
+                const monthNames = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+                return function(value) {
+                  if (!value) return '';
+                  const d = new Date(value + 'T00:00:00');
+                  const day = String(d.getDate()).padStart(2, '0');
+                  const m = d.getMonth();
+                  if (!(m in seen)) { seen[m] = 'm' + (counter % 6); counter++; }
+                  const key = seen[m];
+                  return `{day|${day}}\n{${key}|${monthNames[m]}}`;
+                };
+              })()
             }
           },
           yAxis: {
@@ -564,6 +652,21 @@
             axisTick: { show: false }
           },
           series: [
+            {
+              name: 'MeseBand',
+              type: 'bar',
+              silent: true,
+              barGap: '-100%',
+              barWidth: '100%',
+              itemStyle: { color: 'rgba(255,255,255,0)' },
+              emphasis: { disabled: true },
+              markArea: {
+                silent: true,
+                itemStyle: { color: 'rgba(69,212,255,0.035)' },
+                data: monthBandData
+              },
+              data: categories.map(() => 0)
+            },
             {
               name: 'Weekend',
               type: 'bar',
@@ -580,6 +683,28 @@
                 data: weekendBands
               },
               data: categories.map(() => 0)
+            },
+            {
+              name: 'MeseSeparatore',
+              type: 'line',
+              silent: true,
+              symbol: 'none',
+              data: [],
+              markLine: {
+                silent: true,
+                symbol: 'none',
+                animation: false,
+                label: { show: false },
+                data: monthSeparators.map(xVal => ({
+                  xAxis: xVal,
+                  lineStyle: {
+                    color: 'rgba(255,255,255,0.30)',
+                    type: 'solid',
+                    width: 2,
+                    cap: 'round'
+                  }
+                }))
+              }
             },
             {
               name: 'Occupati',
@@ -660,11 +785,11 @@
                 label: { show: false },
                 data: [
                   {
-                    yAxis: maxCapacity * 0.35,
+                    yAxis: maxCapacity * 0.25,
                     lineStyle: { color: '#33d17a', type: 'dashed', width: 1.5, opacity: 0.55 }
                   },
                   {
-                    yAxis: maxCapacity * 0.60,
+                    yAxis: maxCapacity * 0.50,
                     lineStyle: { color: '#45d4ff', type: 'dashed', width: 1.5, opacity: 0.55 }
                   },
                   {
@@ -681,6 +806,47 @@
           ],
         }
       };
+    }
+
+    function buildMonthSeparators(series) {
+      // Find index where month changes
+      const separators = [];
+      for (let i = 1; i < series.length; i++) {
+        const prev = series[i-1].date;
+        const curr = series[i].date;
+        if (!prev || !curr) continue;
+        const prevMonth = new Date(prev + 'T00:00:00').getMonth();
+        const currMonth = new Date(curr + 'T00:00:00').getMonth();
+        if (prevMonth !== currMonth) {
+          separators.push(curr); // x-axis value where new month starts
+        }
+      }
+      return separators;
+    }
+
+    function buildMonthBands(series) {
+      // Returns markArea bands alternating per month for subtle background distinction
+      const bands = [];
+      if (!series.length) return bands;
+      let bandStart = series[0].date;
+      let currentMonth = new Date(series[0].date + 'T00:00:00').getMonth();
+      let toggle = false;
+
+      for (let i = 1; i < series.length; i++) {
+        const d = new Date(series[i].date + 'T00:00:00');
+        if (d.getMonth() !== currentMonth) {
+          if (toggle) {
+            bands.push([{ xAxis: bandStart }, { xAxis: series[i-1].date }]);
+          }
+          bandStart = series[i].date;
+          currentMonth = d.getMonth();
+          toggle = !toggle;
+        }
+      }
+      if (toggle) {
+        bands.push([{ xAxis: bandStart }, { xAxis: series[series.length-1].date }]);
+      }
+      return bands;
     }
 
     function buildChart(containerId, summaryId, city) {
@@ -701,8 +867,8 @@
 
         const thresholds = [
           { pct: 0,    label: '0%',    color: 'rgba(147,170,215,0.55)' },
-          { pct: 0.35, label: '35%',   color: '#33d17a' },
-          { pct: 0.60, label: '60%',   color: '#45d4ff' },
+          { pct: 0.25, label: '25%',   color: '#33d17a' },
+          { pct: 0.50, label: '50%',   color: '#45d4ff' },
           { pct: 0.75, label: '75%',   color: '#f6c344' },
           { pct: 1.00, label: '100%',  color: '#ff5f6d' }
         ];
@@ -725,7 +891,57 @@
           };
         });
 
-        chart.setOption({ graphic: graphicItems }, false);
+        // Add month name labels centered in each month block, just below the x-axis line
+        const monthItems = [];
+        const monthNamesLong = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+        const monthColorsFull = [
+          'rgba(100,160,255,0.70)', 'rgba(69,212,255,0.70)', 'rgba(100,220,160,0.70)',
+          'rgba(246,195,68,0.70)', 'rgba(255,95,109,0.70)', 'rgba(180,120,255,0.70)'
+        ];
+        let lastMonthG = -1;
+        let monthStartIdxG = 0;
+
+        const allSeries = Array.isArray(city.occupancy_daily) ? city.occupancy_daily : [];
+        const monthGroups = [];
+        allSeries.forEach((item, i) => {
+          if (!item.date) return;
+          const m = new Date(item.date + 'T00:00:00').getMonth();
+          if (m !== lastMonthG) {
+            if (lastMonthG !== -1) monthGroups.push({ month: lastMonthG, startIdx: monthStartIdxG, endIdx: i - 1 });
+            monthStartIdxG = i;
+            lastMonthG = m;
+          }
+          if (i === allSeries.length - 1) monthGroups.push({ month: m, startIdx: monthStartIdxG, endIdx: i });
+        });
+
+        // Get y pixel of the bottom axis line
+        const bottomCoord = chart.convertToPixel({ gridIndex: 0 }, [allSeries[0]?.date || 0, 0]);
+        const bottomY = bottomCoord[1] + 28; // just below x-axis line, above the day labels
+
+        monthGroups.forEach((g, gi) => {
+          const startDate = allSeries[g.startIdx]?.date;
+          const endDate = allSeries[g.endIdx]?.date;
+          if (!startDate || !endDate) return;
+          const startCoord = chart.convertToPixel({ gridIndex: 0 }, [startDate, 0]);
+          const endCoord = chart.convertToPixel({ gridIndex: 0 }, [endDate, 0]);
+          const midX = (startCoord[0] + endCoord[0]) / 2;
+          monthItems.push({
+            type: 'text',
+            x: midX,
+            y: bottomY,
+            style: {
+              text: monthNamesLong[g.month].toUpperCase(),
+              fill: monthColorsFull[gi % 6],
+              font: `700 8.5px Inter, "Segoe UI", sans-serif`,
+              textAlign: 'center',
+              letterSpacing: 1.5
+            },
+            silent: true,
+            z: 10
+          });
+        });
+
+        chart.setOption({ graphic: [...graphicItems, ...monthItems] }, false);
       });
 
       return chart;
@@ -754,6 +970,7 @@
 
         document.getElementById('loading').style.display = 'none';
         document.getElementById('dashboard').style.display = 'grid';
+        document.getElementById('global-legend').style.display = 'flex';
 
         requestAnimationFrame(function() {
           charts.push(buildChart('chart-milano', 'summary-milano', milano));
