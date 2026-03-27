@@ -50,7 +50,7 @@
       height: 100vh;
       padding: 18px;
       display: grid;
-      grid-template-rows: auto 1fr auto;
+      grid-template-rows: auto 1fr;
       gap: 14px;
     }
 
@@ -87,9 +87,7 @@
 
     .main {
       min-height: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
+      display: grid;
     }
 
     .grid {
@@ -97,7 +95,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
-      flex: 1;
+      height: 100%;
     }
 
     .card {
@@ -139,17 +137,24 @@
     }
 
     .eyebrow {
-      display: inline-block;
-      padding: 8px 18px;
-      border-radius: 999px;
-      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
       font-weight: 800;
-      letter-spacing: 0.10em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--cyan);
-      background: rgba(69,212,255,0.10);
-      border: 1px solid rgba(69,212,255,0.25);
+      color: var(--text);
       white-space: nowrap;
+    }
+
+    .city-icon {
+      width: 32px;
+      height: 32px;
+      fill: #ffffff;
+      opacity: 1;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 6px rgba(255,255,255,0.4));
     }
 
     .chart-summary {
@@ -201,31 +206,32 @@
       min-height: 0;
     }
 
-    .legend {
+    .card-legend {
       display: flex;
-      gap: 22px;
-      padding: 8px 4px 2px;
-      flex-shrink: 0;
+      gap: 20px;
       justify-content: center;
       align-items: center;
+      padding: 6px 0 2px;
+      flex-shrink: 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: 4px;
     }
 
     .legend-item {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       white-space: nowrap;
     }
 
     .legend-dot {
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       flex-shrink: 0;
       opacity: 1;
-      box-shadow: 0 0 6px currentColor;
     }
 
     .loading,
@@ -249,38 +255,6 @@
       margin-top: 10px;
       color: var(--muted);
       font-size: 14px;
-    }
-
-    .global-legend {
-      display: flex;
-      gap: 0;
-      justify-content: center;
-      align-items: center;
-      padding: 8px 0 4px;
-      flex-shrink: 0;
-      position: relative;
-    }
-
-    .global-legend .legend-item {
-      padding: 0 28px;
-    }
-
-    .global-legend .legend-sep {
-      width: 1px;
-      height: 20px;
-      background: linear-gradient(180deg, transparent, rgba(255,255,255,0.20), transparent);
-      flex-shrink: 0;
-    }
-
-    .city-icon {
-      width: 18px;
-      height: 18px;
-      fill: currentColor;
-      vertical-align: middle;
-      margin-right: 6px;
-      opacity: 0.9;
-      position: relative;
-      top: -1px;
     }
 
     @media (max-width: 1200px) {
@@ -357,6 +331,12 @@
           </div>
           <div class="card-body">
             <div id="chart-milano" class="chart"></div>
+            <div class="card-legend">
+              <span class="legend-item" style="color:#33d17a"><span class="legend-dot" style="background:#33d17a; box-shadow:0 0 6px #33d17a99;"></span>Bassa &lt;25%</span>
+              <span class="legend-item" style="color:#45d4ff"><span class="legend-dot" style="background:#45d4ff; box-shadow:0 0 6px #45d4ff99;"></span>Media 25–49%</span>
+              <span class="legend-item" style="color:#f6c344"><span class="legend-dot" style="background:#f6c344; box-shadow:0 0 6px #f6c34499;"></span>Alta 50–74%</span>
+              <span class="legend-item" style="color:#ff5f6d"><span class="legend-dot" style="background:#ff5f6d; box-shadow:0 0 6px #ff5f6d99;"></span>Critica ≥75%</span>
+            </div>
           </div>
         </section>
 
@@ -372,18 +352,16 @@
           </div>
           <div class="card-body">
             <div id="chart-roma" class="chart"></div>
+            <div class="card-legend">
+              <span class="legend-item" style="color:#33d17a"><span class="legend-dot" style="background:#33d17a; box-shadow:0 0 6px #33d17a99;"></span>Bassa &lt;25%</span>
+              <span class="legend-item" style="color:#45d4ff"><span class="legend-dot" style="background:#45d4ff; box-shadow:0 0 6px #45d4ff99;"></span>Media 25–49%</span>
+              <span class="legend-item" style="color:#f6c344"><span class="legend-dot" style="background:#f6c344; box-shadow:0 0 6px #f6c34499;"></span>Alta 50–74%</span>
+              <span class="legend-item" style="color:#ff5f6d"><span class="legend-dot" style="background:#ff5f6d; box-shadow:0 0 6px #ff5f6d99;"></span>Critica ≥75%</span>
+            </div>
           </div>
         </section>
       </div>
 
-      <!-- Global centered legend -->
-      <div id="global-legend" class="global-legend" style="display:none;">
-        <span class="legend-item" style="color:#33d17a"><span class="legend-dot" style="background:#33d17a; box-shadow: 0 0 8px #33d17a88;"></span>Bassa &lt;25%</span>
-        <span class="legend-item" style="color:#45d4ff"><span class="legend-dot" style="background:#45d4ff; box-shadow: 0 0 8px #45d4ff88;"></span>Media 25–49%</span>
-        <span class="legend-sep"></span>
-        <span class="legend-item" style="color:#f6c344"><span class="legend-dot" style="background:#f6c344; box-shadow: 0 0 8px #f6c34488;"></span>Alta 50–74%</span>
-        <span class="legend-item" style="color:#ff5f6d"><span class="legend-dot" style="background:#ff5f6d; box-shadow: 0 0 8px #ff5f6d88;"></span>Critica ≥75%</span>
-      </div>
     </main>
   </div>
 
@@ -566,7 +544,7 @@
             left: 52,
             right: 12,
             top: 10,
-            bottom: 72,
+            bottom: 52,
             containLabel: true
           },
           tooltip: {
@@ -607,39 +585,16 @@
             },
             axisTick: { show: false },
             axisLabel: {
-              color: '#9fb2ce',
+              color: '#c8d8f0',
               fontSize: 11,
+              fontWeight: 700,
               interval: 0,
-              margin: 4,
-              rich: {
-                day: {
-                  color: '#c8d8f0',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  lineHeight: 16
-                },
-                m0: { color: 'rgba(100,160,255,0.80)', fontSize: 9, fontWeight: 600, lineHeight: 14 },
-                m1: { color: 'rgba(69,212,255,0.80)', fontSize: 9, fontWeight: 600, lineHeight: 14 },
-                m2: { color: 'rgba(100,220,160,0.80)', fontSize: 9, fontWeight: 600, lineHeight: 14 },
-                m3: { color: 'rgba(246,195,68,0.80)', fontSize: 9, fontWeight: 600, lineHeight: 14 },
-                m4: { color: 'rgba(255,95,109,0.80)', fontSize: 9, fontWeight: 600, lineHeight: 14 },
-                m5: { color: 'rgba(180,120,255,0.80)', fontSize: 9, fontWeight: 600, lineHeight: 14 }
-              },
-              formatter: (function() {
-                // Build a map of month index → rich style key (cycles through m0–m5)
-                const seen = {};
-                let counter = 0;
-                const monthNames = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
-                return function(value) {
-                  if (!value) return '';
-                  const d = new Date(value + 'T00:00:00');
-                  const day = String(d.getDate()).padStart(2, '0');
-                  const m = d.getMonth();
-                  if (!(m in seen)) { seen[m] = 'm' + (counter % 6); counter++; }
-                  const key = seen[m];
-                  return `{day|${day}}\n{${key}|${monthNames[m]}}`;
-                };
-              })()
+              margin: 10,
+              formatter: function(value) {
+                if (!value) return '';
+                const d = new Date(value + 'T00:00:00');
+                return String(d.getDate()).padStart(2, '0');
+              }
             }
           },
           yAxis: {
@@ -916,7 +871,7 @@
 
         // Get y pixel of the bottom axis line
         const bottomCoord = chart.convertToPixel({ gridIndex: 0 }, [allSeries[0]?.date || 0, 0]);
-        const bottomY = bottomCoord[1] + 28; // just below x-axis line, above the day labels
+        const bottomY = bottomCoord[1] + 22; // just below x-axis numbers
 
         monthGroups.forEach((g, gi) => {
           const startDate = allSeries[g.startIdx]?.date;
@@ -932,9 +887,9 @@
             style: {
               text: monthNamesLong[g.month].toUpperCase(),
               fill: monthColorsFull[gi % 6],
-              font: `700 8.5px Inter, "Segoe UI", sans-serif`,
+              font: `600 9px "Segoe UI", sans-serif`,
               textAlign: 'center',
-              letterSpacing: 1.5
+              letterSpacing: 2
             },
             silent: true,
             z: 10
@@ -970,7 +925,6 @@
 
         document.getElementById('loading').style.display = 'none';
         document.getElementById('dashboard').style.display = 'grid';
-        document.getElementById('global-legend').style.display = 'flex';
 
         requestAnimationFrame(function() {
           charts.push(buildChart('chart-milano', 'summary-milano', milano));
