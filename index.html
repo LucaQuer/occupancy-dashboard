@@ -543,8 +543,8 @@
           grid: {
             left: 52,
             right: 12,
-            top: 24,
-            bottom: 58,
+            top: 28,
+            bottom: 62,
             containLabel: true
           },
           tooltip: {
@@ -655,65 +655,12 @@
               }
             },
             {
-              // Invisible full-height bar just to carry the "liberi" top label
-              name: 'Totale',
-              type: 'bar',
-              barWidth: '44%',
-              barGap: '-100%',
-              z: 1,
-              silent: true,
-              data: series.map(item => item.has_data ? Number(item.occupied||0) + Number(item.free||0) : null),
-              itemStyle: { color: 'rgba(255,255,255,0)' },
-              emphasis: { disabled: true },
-              label: {
-                show: true,
-                position: 'top',
-                distance: 5,
-                color: '#e8f0ff',
-                fontSize: 11,
-                fontWeight: 700,
-                textShadowColor: 'rgba(0,0,0,0.9)',
-                textShadowBlur: 3,
-                formatter: function(params) {
-                  const item = series[params.dataIndex];
-                  if (!item || !item.has_data) return '';
-                  return String(Number(item.free || 0));
-                }
-              }
-            },
-            {
+              // Bottom stack: colored bar = occupati
               name: 'Occupati',
               type: 'bar',
-              barWidth: '44%',
-              barGap: '-100%',
+              stack: 'occ',
+              barWidth: '50%',
               z: 3,
-              data: series.map(item => item.has_data ? Number(item.occupied||0) + Number(item.free||0) : null),
-              itemStyle: {
-                color: function(params) {
-                  const item = series[params.dataIndex];
-                  if (!item || !item.has_data) return 'rgba(255,255,255,0)';
-                  return getOccupancyColor(item.percentage);
-                },
-                borderRadius: [6, 6, 0, 0]
-              },
-              emphasis: {
-                itemStyle: {
-                  color: function(params) {
-                    const item = series[params.dataIndex];
-                    if (!item || !item.has_data) return 'rgba(255,255,255,0)';
-                    return getOccupancyColor(item.percentage);
-                  }
-                }
-              },
-              label: { show: false }
-            },
-            {
-              // Colored bar at occupied height only — drawn on top, same width, transparent above
-              name: 'OccupatiColored',
-              type: 'bar',
-              barWidth: '44%',
-              barGap: '-100%',
-              z: 4,
               data: occupiedData,
               itemStyle: {
                 color: function(params) {
@@ -721,21 +668,13 @@
                   if (!item || !item.has_data) return 'rgba(255,255,255,0)';
                   return getOccupancyColor(item.percentage);
                 },
-                borderRadius: [6, 6, 0, 0]
+                borderRadius: [0, 0, 0, 0]
               },
-              emphasis: {
-                itemStyle: {
-                  color: function(params) {
-                    const item = series[params.dataIndex];
-                    if (!item || !item.has_data) return 'rgba(255,255,255,0)';
-                    return getOccupancyColor(item.percentage);
-                  }
-                }
-              },
+              emphasis: { disabled: true },
               label: {
                 show: true,
                 position: 'bottom',
-                distance: 0,
+                distance: 6,
                 fontSize: 11,
                 fontWeight: 700,
                 textShadowColor: 'rgba(0,0,0,0.9)',
@@ -746,7 +685,38 @@
                   return getOccupancyColor(item.percentage);
                 },
                 formatter: function(params) {
-                  return params.value == null ? '' : String(params.value);
+                  const item = series[params.dataIndex];
+                  if (!item || !item.has_data || params.value == null) return '';
+                  return String(Number(item.occupied));
+                }
+              }
+            },
+            {
+              // Top stack: grey bar = liberi (sits on top of occupati)
+              name: 'Liberi',
+              type: 'bar',
+              stack: 'occ',
+              barWidth: '50%',
+              z: 3,
+              data: freeData,
+              itemStyle: {
+                color: 'rgba(120, 148, 190, 0.22)',
+                borderRadius: [6, 6, 0, 0]
+              },
+              emphasis: { disabled: true },
+              label: {
+                show: true,
+                position: 'top',
+                distance: 5,
+                color: '#d0e0f8',
+                fontSize: 11,
+                fontWeight: 700,
+                textShadowColor: 'rgba(0,0,0,0.9)',
+                textShadowBlur: 3,
+                formatter: function(params) {
+                  const item = series[params.dataIndex];
+                  if (!item || !item.has_data || params.value == null) return '';
+                  return String(Number(item.free));
                 }
               }
             },
