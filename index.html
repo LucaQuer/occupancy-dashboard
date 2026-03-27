@@ -534,7 +534,7 @@
           grid: {
             left: 48,
             right: 12,
-            top: 28,
+            top: 32,
             bottom: 64,
             containLabel: true
           },
@@ -568,7 +568,7 @@
           yAxis: {
             type: 'value',
             min: 0,
-            max: Math.ceil(maxCapacity * 1.01),
+            max: maxCapacity,
             axisLabel: { show: false },
             splitLine: { show: false },
             axisLine: { show: false },
@@ -588,14 +588,7 @@
               markArea: { silent: true, itemStyle: { color: 'rgba(255,255,255,0.045)' }, data: weekendBands },
               data: categories.map(() => 0)
             },
-            // ── month separator vertical line ──
-            {
-              name: 'MeseSep', type: 'line', silent: true, symbol: 'none', data: [],
-              markLine: {
-                silent: true, symbol: 'none', animation: false, label: { show: false },
-                data: monthSeparators.map(x => ({ xAxis: x, lineStyle: { color: 'rgba(255,255,255,0.28)', type: 'solid', width: 1.5 } }))
-              }
-            },
+            // ── month separator: drawn via graphic post-render for pixel-accurate placement ──
             // ── SFONDO grigio: barra piena fino al totale (occupati+liberi) ──
             {
               name: 'Sfondo', type: 'bar', barWidth: '52%', barCategoryGap: '40%',
@@ -607,7 +600,7 @@
               },
               // Numero liberi (in alto, bianco) sul top della barra sfondo
               label: {
-                show: true, position: 'top', distance: 5,
+                show: true, position: 'top', distance: 8,
                 color: '#c8d8f0', fontSize: 11, fontWeight: 700,
                 textShadowColor: 'rgba(0,0,0,0.8)', textShadowBlur: 3,
                 formatter: function(params) {
@@ -722,7 +715,28 @@
           };
         });
 
-        // ── Numbers below axis: occupied count (colored) + day number (grey), stacked ──
+        // ── Month separator lines: drawn between last day of month and first of next ──
+        const sepItems = [];
+        const chartH = chart.getHeight();
+        const gridTop = chart.convertToPixel({ gridIndex: 0 }, [series[0]?.date || 0, maxCap])[1];
+        const gridBottom = chart.convertToPixel({ gridIndex: 0 }, [series[0]?.date || 0, 0])[1];
+
+        for (let i = 1; i < series.length; i++) {
+          const prev = series[i-1].date, curr = series[i].date;
+          if (!prev || !curr) continue;
+          if (new Date(prev + 'T00:00:00').getMonth() !== new Date(curr + 'T00:00:00').getMonth()) {
+            const xPrev = chart.convertToPixel({ gridIndex: 0 }, [prev, 0])[0];
+            const xCurr = chart.convertToPixel({ gridIndex: 0 }, [curr, 0])[0];
+            const xLine = (xPrev + xCurr) / 2;
+            sepItems.push({
+              type: 'line', silent: true, z: 8,
+              shape: { x1: xLine, y1: gridTop, x2: xLine, y2: gridBottom },
+              style: { stroke: 'rgba(255,255,255,0.30)', lineWidth: 1.5 }
+            });
+          }
+        }
+
+        // ── Numbers below axis: occupied count (colored) + day number (grey) ──
         const axisCoord = chart.convertToPixel({ gridIndex: 0 }, [series[0]?.date || 0, 0]);
         const occupiedY = axisCoord[1] + 13;  // row 1: occupied count, colored
         const dayY      = axisCoord[1] + 26;  // row 2: day number, grey
@@ -793,7 +807,7 @@
           };
         }).filter(Boolean);
 
-        chart.setOption({ graphic: [...graphicItems, ...belowAxisItems, ...monthItems] }, false);
+        chart.setOption({ graphic: [...graphicItems, ...sepItems, ...belowAxisItems, ...monthItems] }, false);
       });
 
       return chart;
