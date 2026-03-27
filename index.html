@@ -507,52 +507,40 @@
       const metrics = computeMetrics(series);
 
       const categories = series.map(item => item.date);
-      const occupiedData = series.map(item => item.has_data ? Number(item.occupied || 0) : null);
-      const freeData = series.map(item => item.has_data ? Number(item.free || 0) : null);
       const totals = series.map(item => item.has_data ? Number(item.occupied || 0) + Number(item.free || 0) : 0);
       const weekendBands = buildWeekendBands(series);
       const monthSeparators = buildMonthSeparators(series);
       const maxCapacity = Math.max(...totals, 10);
 
-      // Build alternating month background bands
+      // Alternating month bands
       const monthBandData = [];
-      let prevMonth = -1, bandStart = null;
-      let toggle = false;
+      let prevMonth = -1, bandStart = null, toggle = false;
       series.forEach((item, i) => {
         if (!item.date) return;
         const m = new Date(item.date + 'T00:00:00').getMonth();
         if (m !== prevMonth) {
-          if (bandStart !== null && toggle) {
-            monthBandData.push([{ xAxis: bandStart }, { xAxis: series[i-1].date }]);
-          }
-          bandStart = item.date;
-          prevMonth = m;
-          toggle = !toggle;
+          if (bandStart !== null && toggle) monthBandData.push([{ xAxis: bandStart }, { xAxis: series[i-1].date }]);
+          bandStart = item.date; prevMonth = m; toggle = !toggle;
         }
-        if (i === series.length - 1 && bandStart !== null && toggle) {
-          monthBandData.push([{ xAxis: bandStart }, { xAxis: item.date }]);
-        }
+        if (i === series.length - 1 && bandStart !== null && toggle) monthBandData.push([{ xAxis: bandStart }, { xAxis: item.date }]);
       });
 
       return {
         metrics,
         option: {
           backgroundColor: 'transparent',
-          animationDuration: 700,
+          animationDuration: 600,
           animationEasing: 'cubicOut',
           grid: {
-            left: 52,
+            left: 48,
             right: 12,
             top: 28,
-            bottom: 62,
+            bottom: 56,
             containLabel: true
           },
           tooltip: {
             trigger: 'axis',
-            axisPointer: {
-              type: 'shadow',
-              shadowStyle: { color: 'rgba(255,255,255,0.04)' }
-            },
+            axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(255,255,255,0.04)' } },
             backgroundColor: 'rgba(7,17,31,0.96)',
             borderWidth: 0,
             textStyle: { color: '#ffffff' },
@@ -560,15 +548,8 @@
               const dataIndex = params?.[0]?.dataIndex ?? 0;
               const item = series[dataIndex];
               if (!item) return '';
-
-              if (item.is_weekend) {
-                return `${formatDisplayDate(item.date)}<br><b>Weekend</b>`;
-              }
-
-              if (!item.has_data) {
-                return `${formatDisplayDate(item.date)}<br><b>Nessun dato</b>`;
-              }
-
+              if (item.is_weekend) return `${formatDisplayDate(item.date)}<br><b>Weekend</b>`;
+              if (!item.has_data) return `${formatDisplayDate(item.date)}<br><b>Nessun dato</b>`;
               return [
                 formatDisplayDate(item.date),
                 `Occupati: <b>${item.occupied}</b>`,
@@ -580,20 +561,17 @@
           xAxis: {
             type: 'category',
             data: categories,
-            axisLine: {
-              lineStyle: { color: 'rgba(255,255,255,0.16)' }
-            },
+            axisLine: { lineStyle: { color: 'rgba(255,255,255,0.16)' } },
             axisTick: { show: false },
             axisLabel: {
-              color: '#c8d8f0',
+              color: '#9fb2ce',
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 600,
               interval: 0,
-              margin: 10,
+              margin: 8,
               formatter: function(value) {
                 if (!value) return '';
-                const d = new Date(value + 'T00:00:00');
-                return String(d.getDate()).padStart(2, '0');
+                return String(new Date(value + 'T00:00:00').getDate()).padStart(2, '0');
               }
             }
           },
@@ -607,139 +585,79 @@
             axisTick: { show: false }
           },
           series: [
+            // ── background helpers (markArea only) ──
             {
-              name: 'MeseBand',
-              type: 'bar',
-              silent: true,
-              barGap: '-100%',
-              barWidth: '100%',
-              itemStyle: { color: 'rgba(255,255,255,0)' },
-              emphasis: { disabled: true },
-              markArea: {
-                silent: true,
-                itemStyle: { color: 'rgba(69,212,255,0.035)' },
-                data: monthBandData
-              },
+              name: 'MeseBand', type: 'bar', silent: true, barGap: '-100%', barWidth: '100%',
+              itemStyle: { color: 'rgba(255,255,255,0)' }, emphasis: { disabled: true },
+              markArea: { silent: true, itemStyle: { color: 'rgba(69,212,255,0.03)' }, data: monthBandData },
               data: categories.map(() => 0)
             },
             {
-              name: 'Weekend',
-              type: 'bar',
-              silent: true,
-              barGap: '-100%',
-              barWidth: '100%',
-              itemStyle: { color: 'rgba(255,255,255,0)' },
-              emphasis: { disabled: true },
-              markArea: {
-                silent: true,
-                itemStyle: { color: 'rgba(255,255,255,0.05)' },
-                data: weekendBands
-              },
+              name: 'Weekend', type: 'bar', silent: true, barGap: '-100%', barWidth: '100%',
+              itemStyle: { color: 'rgba(255,255,255,0)' }, emphasis: { disabled: true },
+              markArea: { silent: true, itemStyle: { color: 'rgba(255,255,255,0.045)' }, data: weekendBands },
               data: categories.map(() => 0)
             },
+            // ── month separator vertical line ──
             {
-              name: 'MeseSeparatore',
-              type: 'line',
-              silent: true,
-              symbol: 'none',
-              data: [],
+              name: 'MeseSep', type: 'line', silent: true, symbol: 'none', data: [],
               markLine: {
-                silent: true,
-                symbol: 'none',
-                animation: false,
-                label: { show: false },
-                data: monthSeparators.map(xVal => ({
-                  xAxis: xVal,
-                  lineStyle: { color: 'rgba(255,255,255,0.30)', type: 'solid', width: 2 }
-                }))
+                silent: true, symbol: 'none', animation: false, label: { show: false },
+                data: monthSeparators.map(x => ({ xAxis: x, lineStyle: { color: 'rgba(255,255,255,0.28)', type: 'solid', width: 1.5 } }))
               }
             },
+            // ── SFONDO grigio: barra piena fino al totale (occupati+liberi) ──
             {
-              // Bottom stack: colored bar = occupati
-              name: 'Occupati',
-              type: 'bar',
-              stack: 'occ',
-              barWidth: '50%',
-              z: 3,
-              data: occupiedData,
+              name: 'Sfondo', type: 'bar', barWidth: '52%', barCategoryGap: '40%',
+              z: 2, silent: true, emphasis: { disabled: true },
+              data: series.map(item => item.has_data ? Number(item.occupied||0) + Number(item.free||0) : null),
               itemStyle: {
-                color: function(params) {
-                  const item = series[params.dataIndex];
-                  if (!item || !item.has_data) return 'rgba(255,255,255,0)';
-                  return getOccupancyColor(item.percentage);
-                },
-                borderRadius: [0, 0, 0, 0]
+                color: 'rgba(100, 130, 175, 0.18)',
+                borderRadius: [5, 5, 0, 0]
               },
-              emphasis: { disabled: true },
+              // Numero liberi (in alto, bianco) sul top della barra sfondo
               label: {
-                show: true,
-                position: 'bottom',
-                distance: 6,
-                fontSize: 11,
-                fontWeight: 700,
-                textShadowColor: 'rgba(0,0,0,0.9)',
-                textShadowBlur: 3,
+                show: true, position: 'top', distance: 5,
+                color: '#c8d8f0', fontSize: 11, fontWeight: 700,
+                textShadowColor: 'rgba(0,0,0,0.8)', textShadowBlur: 3,
+                formatter: function(params) {
+                  const item = series[params.dataIndex];
+                  if (!item || !item.has_data) return '';
+                  return String(Number(item.free));
+                }
+              }
+            },
+            // ── BARRA COLORATA: solo occupati, sovrapposta alla sfondo ──
+            {
+              name: 'Occupati', type: 'bar', barWidth: '52%', barCategoryGap: '40%',
+              barGap: '-100%',
+              z: 4,
+              data: series.map(item => item.has_data ? Number(item.occupied||0) : null),
+              itemStyle: {
                 color: function(params) {
                   const item = series[params.dataIndex];
                   if (!item || !item.has_data) return 'rgba(0,0,0,0)';
                   return getOccupancyColor(item.percentage);
                 },
-                formatter: function(params) {
-                  const item = series[params.dataIndex];
-                  if (!item || !item.has_data || params.value == null) return '';
-                  return String(Number(item.occupied));
-                }
-              }
-            },
-            {
-              // Top stack: grey bar = liberi (sits on top of occupati)
-              name: 'Liberi',
-              type: 'bar',
-              stack: 'occ',
-              barWidth: '50%',
-              z: 3,
-              data: freeData,
-              itemStyle: {
-                color: 'rgba(120, 148, 190, 0.22)',
-                borderRadius: [6, 6, 0, 0]
+                borderRadius: [5, 5, 0, 0]
               },
               emphasis: { disabled: true },
-              label: {
-                show: true,
-                position: 'top',
-                distance: 5,
-                color: '#d0e0f8',
-                fontSize: 11,
-                fontWeight: 700,
-                textShadowColor: 'rgba(0,0,0,0.9)',
-                textShadowBlur: 3,
-                formatter: function(params) {
-                  const item = series[params.dataIndex];
-                  if (!item || !item.has_data || params.value == null) return '';
-                  return String(Number(item.free));
-                }
-              }
+              label: { show: false }
             },
+            // ── threshold lines ──
             {
-              name: 'Soglie',
-              type: 'line',
-              silent: true,
-              symbol: 'none',
-              data: [],
+              name: 'Soglie', type: 'line', silent: true, symbol: 'none', data: [],
               markLine: {
-                silent: true,
-                symbol: 'none',
-                animation: false,
-                label: { show: false },
+                silent: true, symbol: 'none', animation: false, label: { show: false },
                 data: [
-                  { yAxis: maxCapacity * 0.25, lineStyle: { color: '#33d17a', type: 'dashed', width: 1.5, opacity: 0.55 } },
-                  { yAxis: maxCapacity * 0.50, lineStyle: { color: '#45d4ff', type: 'dashed', width: 1.5, opacity: 0.55 } },
-                  { yAxis: maxCapacity * 0.75, lineStyle: { color: '#f6c344', type: 'dashed', width: 1.5, opacity: 0.55 } },
-                  { yAxis: maxCapacity * 1.0,  lineStyle: { color: '#ff5f6d', type: 'dashed', width: 1.5, opacity: 0.55 } }
+                  { yAxis: maxCapacity * 0.25, lineStyle: { color: '#33d17a', type: 'dashed', width: 1.5, opacity: 0.6 } },
+                  { yAxis: maxCapacity * 0.50, lineStyle: { color: '#45d4ff', type: 'dashed', width: 1.5, opacity: 0.6 } },
+                  { yAxis: maxCapacity * 0.75, lineStyle: { color: '#f6c344', type: 'dashed', width: 1.5, opacity: 0.6 } },
+                  { yAxis: maxCapacity * 1.0,  lineStyle: { color: '#ff5f6d', type: 'dashed', width: 1.5, opacity: 0.6 } }
                 ]
               }
             }
-          ],
+          ]
         }
       };
     }
@@ -792,92 +710,80 @@
       renderSummary(summaryId, metrics);
       chart.setOption(option, true);
 
-      // Add colored y-axis threshold labels via graphic after render
       chart.on('finished', function() {
         const series = Array.isArray(city.occupancy_daily) ? city.occupancy_daily : [];
         const totals = series.map(item => item.has_data ? Number(item.occupied||0)+Number(item.free||0) : 0);
         const maxCap = Math.max(...totals, 10);
-        const yMax = Math.ceil(maxCap * 1.12);
-        const model = chart.getModel();
-        const gridRect = chart.convertToPixel({ gridIndex: 0 }, [0, 0]);
 
+        // ── Y-axis threshold labels ──
         const thresholds = [
-          { pct: 0,    label: '0%',    color: 'rgba(147,170,215,0.55)' },
-          { pct: 0.25, label: '25%',   color: '#33d17a' },
-          { pct: 0.50, label: '50%',   color: '#45d4ff' },
-          { pct: 0.75, label: '75%',   color: '#f6c344' },
-          { pct: 1.00, label: '100%',  color: '#ff5f6d' }
+          { pct: 0,    label: '0%',   color: 'rgba(147,170,215,0.55)' },
+          { pct: 0.25, label: '25%',  color: '#33d17a' },
+          { pct: 0.50, label: '50%',  color: '#45d4ff' },
+          { pct: 0.75, label: '75%',  color: '#f6c344' },
+          { pct: 1.00, label: '100%', color: '#ff5f6d' }
         ];
-
         const graphicItems = thresholds.map(t => {
-          const yVal = maxCap * t.pct;
-          const coord = chart.convertToPixel({ gridIndex: 0 }, [0, yVal]);
+          const coord = chart.convertToPixel({ gridIndex: 0 }, [0, maxCap * t.pct]);
           return {
-            type: 'text',
-            x: coord[0] - 38,
-            y: coord[1] - 7,
-            style: {
-              text: t.label,
-              fill: t.color,
-              font: `700 11px Inter, "Segoe UI", sans-serif`,
-              textAlign: 'right'
-            },
-            silent: true,
-            z: 10
+            type: 'text', silent: true, z: 10,
+            x: coord[0] - 38, y: coord[1] - 7,
+            style: { text: t.label, fill: t.color, font: `700 11px Inter,"Segoe UI",sans-serif`, textAlign: 'right' }
           };
         });
 
-        // Add month name labels centered in each month block, just below the x-axis line
-        const monthItems = [];
-        const monthNamesLong = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-        const monthColorsFull = [
-          'rgba(100,160,255,0.70)', 'rgba(69,212,255,0.70)', 'rgba(100,220,160,0.70)',
-          'rgba(246,195,68,0.70)', 'rgba(255,95,109,0.70)', 'rgba(180,120,255,0.70)'
-        ];
-        let lastMonthG = -1;
-        let monthStartIdxG = 0;
+        // ── Numbers below axis: occupied count, colored by threshold ──
+        const axisCoord = chart.convertToPixel({ gridIndex: 0 }, [series[0]?.date || 0, 0]);
+        const numY = axisCoord[1] + 14; // just below the axis line
 
-        const allSeries = Array.isArray(city.occupancy_daily) ? city.occupancy_daily : [];
+        const occupiedItems = series.map((item, i) => {
+          if (!item.has_data) return null;
+          const xCoord = chart.convertToPixel({ gridIndex: 0 }, [item.date, 0]);
+          return {
+            type: 'text', silent: true, z: 10,
+            x: xCoord[0], y: numY,
+            style: {
+              text: String(Number(item.occupied)),
+              fill: getOccupancyColor(item.percentage),
+              font: `700 10px Inter,"Segoe UI",sans-serif`,
+              textAlign: 'center'
+            }
+          };
+        }).filter(Boolean);
+
+        // ── Month name labels centered in each month block ──
+        const monthNamesLong = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+        const monthColorsFull = ['rgba(100,160,255,0.70)','rgba(69,212,255,0.70)','rgba(100,220,160,0.70)','rgba(246,195,68,0.70)','rgba(255,95,109,0.70)','rgba(180,120,255,0.70)'];
+        let lastM = -1, mStartIdx = 0;
         const monthGroups = [];
-        allSeries.forEach((item, i) => {
+        series.forEach((item, i) => {
           if (!item.date) return;
           const m = new Date(item.date + 'T00:00:00').getMonth();
-          if (m !== lastMonthG) {
-            if (lastMonthG !== -1) monthGroups.push({ month: lastMonthG, startIdx: monthStartIdxG, endIdx: i - 1 });
-            monthStartIdxG = i;
-            lastMonthG = m;
+          if (m !== lastM) {
+            if (lastM !== -1) monthGroups.push({ month: lastM, startIdx: mStartIdx, endIdx: i - 1 });
+            mStartIdx = i; lastM = m;
           }
-          if (i === allSeries.length - 1) monthGroups.push({ month: m, startIdx: monthStartIdxG, endIdx: i });
+          if (i === series.length - 1) monthGroups.push({ month: m, startIdx: mStartIdx, endIdx: i });
         });
-
-        // Get y pixel of the bottom axis line
-        const bottomCoord = chart.convertToPixel({ gridIndex: 0 }, [allSeries[0]?.date || 0, 0]);
-        const bottomY = bottomCoord[1] + 22; // just below x-axis numbers
-
-        monthGroups.forEach((g, gi) => {
-          const startDate = allSeries[g.startIdx]?.date;
-          const endDate = allSeries[g.endIdx]?.date;
-          if (!startDate || !endDate) return;
-          const startCoord = chart.convertToPixel({ gridIndex: 0 }, [startDate, 0]);
-          const endCoord = chart.convertToPixel({ gridIndex: 0 }, [endDate, 0]);
-          const midX = (startCoord[0] + endCoord[0]) / 2;
-          monthItems.push({
-            type: 'text',
-            x: midX,
-            y: bottomY,
+        const monthLabelY = numY + 16;
+        const monthItems = monthGroups.map((g, gi) => {
+          const s = series[g.startIdx]?.date, e = series[g.endIdx]?.date;
+          if (!s || !e) return null;
+          const sx = chart.convertToPixel({ gridIndex: 0 }, [s, 0])[0];
+          const ex = chart.convertToPixel({ gridIndex: 0 }, [e, 0])[0];
+          return {
+            type: 'text', silent: true, z: 10,
+            x: (sx + ex) / 2, y: monthLabelY,
             style: {
               text: monthNamesLong[g.month].toUpperCase(),
               fill: monthColorsFull[gi % 6],
-              font: `600 9px "Segoe UI", sans-serif`,
-              textAlign: 'center',
-              letterSpacing: 2
-            },
-            silent: true,
-            z: 10
-          });
-        });
+              font: `600 8.5px "Segoe UI",sans-serif`,
+              textAlign: 'center', letterSpacing: 1.5
+            }
+          };
+        }).filter(Boolean);
 
-        chart.setOption({ graphic: [...graphicItems, ...monthItems] }, false);
+        chart.setOption({ graphic: [...graphicItems, ...occupiedItems, ...monthItems] }, false);
       });
 
       return chart;
