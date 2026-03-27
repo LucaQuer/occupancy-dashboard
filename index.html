@@ -535,7 +535,7 @@
             left: 48,
             right: 12,
             top: 28,
-            bottom: 56,
+            bottom: 64,
             containLabel: true
           },
           tooltip: {
@@ -563,17 +563,7 @@
             data: categories,
             axisLine: { lineStyle: { color: 'rgba(255,255,255,0.16)' } },
             axisTick: { show: false },
-            axisLabel: {
-              color: '#9fb2ce',
-              fontSize: 11,
-              fontWeight: 600,
-              interval: 0,
-              margin: 8,
-              formatter: function(value) {
-                if (!value) return '';
-                return String(new Date(value + 'T00:00:00').getDate()).padStart(2, '0');
-              }
-            }
+            axisLabel: { show: false }
           },
           yAxis: {
             type: 'value',
@@ -732,28 +722,48 @@
           };
         });
 
-        // ── Numbers below axis: occupied count, colored by threshold ──
+        // ── Numbers below axis: occupied count (colored) + day number (grey), stacked ──
         const axisCoord = chart.convertToPixel({ gridIndex: 0 }, [series[0]?.date || 0, 0]);
-        const numY = axisCoord[1] + 14; // just below the axis line
+        const occupiedY = axisCoord[1] + 13;  // row 1: occupied count, colored
+        const dayY      = axisCoord[1] + 26;  // row 2: day number, grey
 
-        const occupiedItems = series.map((item, i) => {
-          if (!item.has_data) return null;
-          const xCoord = chart.convertToPixel({ gridIndex: 0 }, [item.date, 0]);
-          return {
+        const belowAxisItems = [];
+        series.forEach((item) => {
+          if (!item.date) return;
+          const xCoord = chart.convertToPixel({ gridIndex: 0 }, [item.date, 0])[0];
+          const d = new Date(item.date + 'T00:00:00');
+          const dayStr = String(d.getDate()).padStart(2, '0');
+
+          // Day number — always shown, grey
+          belowAxisItems.push({
             type: 'text', silent: true, z: 10,
-            x: xCoord[0], y: numY,
+            x: xCoord, y: dayY,
             style: {
-              text: String(Number(item.occupied)),
-              fill: getOccupancyColor(item.percentage),
-              font: `700 10px Inter,"Segoe UI",sans-serif`,
+              text: dayStr,
+              fill: '#8aa0be',
+              font: `600 10px Inter,"Segoe UI",sans-serif`,
               textAlign: 'center'
             }
-          };
-        }).filter(Boolean);
+          });
 
-        // ── Month name labels centered in each month block ──
+          // Occupied number — only on data days, colored
+          if (item.has_data) {
+            belowAxisItems.push({
+              type: 'text', silent: true, z: 10,
+              x: xCoord, y: occupiedY,
+              style: {
+                text: String(Number(item.occupied)),
+                fill: getOccupancyColor(item.percentage),
+                font: `700 10px Inter,"Segoe UI",sans-serif`,
+                textAlign: 'center'
+              }
+            });
+          }
+        });
+
+        // ── Month name label: one per month, centered in its block ──
         const monthNamesLong = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-        const monthColorsFull = ['rgba(100,160,255,0.70)','rgba(69,212,255,0.70)','rgba(100,220,160,0.70)','rgba(246,195,68,0.70)','rgba(255,95,109,0.70)','rgba(180,120,255,0.70)'];
+        const monthColorsFull = ['rgba(100,160,255,0.75)','rgba(69,212,255,0.75)','rgba(100,220,160,0.75)','rgba(246,195,68,0.75)','rgba(255,95,109,0.75)','rgba(180,120,255,0.75)'];
         let lastM = -1, mStartIdx = 0;
         const monthGroups = [];
         series.forEach((item, i) => {
@@ -765,7 +775,7 @@
           }
           if (i === series.length - 1) monthGroups.push({ month: m, startIdx: mStartIdx, endIdx: i });
         });
-        const monthLabelY = numY + 16;
+        const monthLabelY = dayY + 14;
         const monthItems = monthGroups.map((g, gi) => {
           const s = series[g.startIdx]?.date, e = series[g.endIdx]?.date;
           if (!s || !e) return null;
@@ -777,13 +787,13 @@
             style: {
               text: monthNamesLong[g.month].toUpperCase(),
               fill: monthColorsFull[gi % 6],
-              font: `600 8.5px "Segoe UI",sans-serif`,
+              font: `600 8px "Segoe UI",sans-serif`,
               textAlign: 'center', letterSpacing: 1.5
             }
           };
         }).filter(Boolean);
 
-        chart.setOption({ graphic: [...graphicItems, ...occupiedItems, ...monthItems] }, false);
+        chart.setOption({ graphic: [...graphicItems, ...belowAxisItems, ...monthItems] }, false);
       });
 
       return chart;
