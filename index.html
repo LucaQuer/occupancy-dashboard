@@ -532,11 +532,11 @@
           animationDuration: 600,
           animationEasing: 'cubicOut',
           grid: {
-            left: 48,
+            left: 52,
             right: 12,
             top: 32,
             bottom: 72,
-            containLabel: true
+            containLabel: false
           },
           tooltip: {
             trigger: 'axis',
@@ -706,11 +706,16 @@
           { pct: 0.75, label: '75%',  color: '#f6c344' },
           { pct: 1.00, label: '100%', color: '#ff5f6d' }
         ];
+        // Use a fixed X position anchored to the left edge of the plot area
+        const gridModel = chart.getModel().getComponent('grid', 0);
+        const gridRect = gridModel.coordinateSystem.getRect();
+        const labelX = gridRect.x - 4; // just left of the plot area
+
         const graphicItems = thresholds.map(t => {
           const coord = chart.convertToPixel({ gridIndex: 0 }, [0, maxCap * t.pct]);
           return {
             type: 'text', silent: true, z: 10,
-            x: coord[0] - 38, y: coord[1] - 7,
+            x: labelX, y: coord[1] - 7,
             style: { text: t.label, fill: t.color, font: `700 11px Inter,"Segoe UI",sans-serif`, textAlign: 'right' }
           };
         });
